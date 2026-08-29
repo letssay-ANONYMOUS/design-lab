@@ -1,4 +1,4 @@
-import { Popover, Segmented, Slider, ToolButton, Toggle } from '@/components/ui/primitives'
+import { Explain, Popover, Segmented, Slider, ToolButton, Toggle } from '@/components/ui/primitives'
 import { remixPage } from '@/lib/remix'
 import { PRESETS } from '@/presets'
 import { useLab } from '@/store/useLab'
@@ -140,6 +140,7 @@ export function TopBar({ onExport }: { onExport: () => void }) {
       >
         <Slider
           label="Trust density"
+          explain="trustDensity"
           value={view.trustDensity}
           min={0}
           max={100}
@@ -164,6 +165,7 @@ export function TopBar({ onExport }: { onExport: () => void }) {
         <div className="flex flex-col gap-3">
           <Slider
             label="Stagger"
+            explain="stagger"
             value={view.choreo.stagger}
             min={0}
             max={0.3}
@@ -173,6 +175,7 @@ export function TopBar({ onExport }: { onExport: () => void }) {
           />
           <Slider
             label="Fade distance"
+            explain="distance"
             value={view.choreo.distance}
             min={0}
             max={80}
@@ -181,6 +184,7 @@ export function TopBar({ onExport }: { onExport: () => void }) {
           />
           <Slider
             label="Hero parallax"
+            explain="parallax"
             value={view.choreo.parallax}
             min={0}
             max={100}
@@ -200,6 +204,7 @@ export function TopBar({ onExport }: { onExport: () => void }) {
         <span className="hidden text-[10px] font-semibold tracking-[0.13em] text-ui-500 uppercase 2xl:inline">
           Voice
         </span>
+        <Explain topic="tone" />
         <Segmented value={view.tone} options={TONE_OPTIONS} onChange={setTone} className="w-[186px]" />
       </div>
 
@@ -240,6 +245,7 @@ export function ChoreoControls() {
     <div className="flex flex-col gap-3">
       <Slider
         label="Stagger"
+        explain="stagger"
         value={choreo.stagger}
         min={0}
         max={0.3}
@@ -249,6 +255,7 @@ export function ChoreoControls() {
       />
       <Slider
         label="Fade distance"
+        explain="distance"
         value={choreo.distance}
         min={0}
         max={80}
@@ -257,6 +264,7 @@ export function ChoreoControls() {
       />
       <Slider
         label="Hero parallax"
+        explain="parallax"
         value={choreo.parallax}
         min={0}
         max={100}
@@ -268,6 +276,7 @@ export function ChoreoControls() {
         onChange={(squint) => setView({ squint })}
         label="Squint test"
         hint="Blur the page to judge hierarchy"
+        explain="squint"
       />
       <ToolButton variant="solid" onClick={playPreview} icon={<Play size={13} />}>
         Play the scroll

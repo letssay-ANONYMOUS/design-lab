@@ -1,9 +1,11 @@
 import { cn } from '@/lib/cn'
+import { EXPLAIN, type ExplainKey } from '@/lib/explain'
 import { AnimatePresence, motion } from 'framer-motion'
-import { X } from 'lucide-react'
+import { Eye, X } from 'lucide-react'
 import {
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   type ButtonHTMLAttributes,
@@ -54,6 +56,112 @@ export function ToolButton({
   )
 }
 
+/* --------------------------------- Explain -------------------------------- */
+
+/**
+ * The little eye next to a control label. Opens a plain-English note on what
+ * the control does and when to use it.
+ *
+ * It renders into a portal rather than inline because most of these sit inside
+ * the scrolling right panel, and an absolutely-positioned card would be clipped
+ * by the panel's own overflow the moment it grew past the edge.
+ */
+export function Explain({ topic }: { topic: ExplainKey }) {
+  const note = EXPLAIN[topic]
+  const [open, setOpen] = useState(false)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const cardRef = useRef<HTMLDivElement>(null)
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
+
+  useLayoutEffect(() => {
+    if (!open) return
+    const anchor = buttonRef.current?.getBoundingClientRect()
+    if (!anchor) return
+    const width = 296
+    const height = cardRef.current?.offsetHeight ?? 220
+    /* Flip above the anchor when there is no room below, and keep the card
+     * inside the viewport on the cross axis. */
+    const below = anchor.bottom + 8
+    const top = below + height > window.innerHeight - 12 ? Math.max(12, anchor.top - height - 8) : below
+    const left = Math.min(Math.max(12, anchor.left - width + anchor.width), window.innerWidth - width - 12)
+    setPos({ top, left })
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
+    const onDown = (event: MouseEvent) => {
+      const target = event.target as Node
+      if (!cardRef.current?.contains(target) && !buttonRef.current?.contains(target)) setOpen(false)
+    }
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.stopPropagation()
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  return (
+    <>
+      <button
+        ref={buttonRef}
+        type="button"
+        aria-label={`What does ${note.title} do?`}
+        aria-expanded={open}
+        onClick={(event) => {
+          event.stopPropagation()
+          setOpen((v) => !v)
+        }}
+        className={cn(
+          'inline-grid h-4 w-4 shrink-0 cursor-pointer place-items-center rounded-full transition-colors',
+          open ? 'bg-brand/25 text-brand-soft' : 'text-ui-600 hover:bg-ui-750 hover:text-ui-300',
+        )}
+      >
+        <Eye size={11} strokeWidth={2.2} />
+      </button>
+
+      {open &&
+        createPortal(
+          <motion.div
+            ref={cardRef}
+            initial={{ opacity: 0, y: -4, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+            role="dialog"
+            aria-label={note.title}
+            className="fixed z-[300] w-[296px] rounded-xl border border-ui-700 bg-ui-900 p-3.5 shadow-2xl"
+            style={{ top: pos?.top ?? -9999, left: pos?.left ?? -9999 }}
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <h4 className="m-0 text-[12px] font-semibold text-ui-100">{note.title}</h4>
+              <button
+                type="button"
+                aria-label="Close"
+                onClick={() => setOpen(false)}
+                className="grid h-5 w-5 cursor-pointer place-items-center rounded-md text-ui-500 hover:bg-ui-800 hover:text-ui-200"
+              >
+                <X size={12} />
+              </button>
+            </div>
+            <p className="m-0 text-[11px] leading-relaxed text-ui-300">{note.what}</p>
+            <p className="m-0 mt-2 text-[11px] leading-relaxed text-ui-400">{note.why}</p>
+            <p className="m-0 mt-2.5 border-t border-ui-800 pt-2.5 text-[11px] leading-relaxed text-brand-soft">
+              {note.tip}
+            </p>
+          </motion.div>,
+          document.body,
+        )}
+    </>
+  )
+}
+
 /* --------------------------------- Slider -------------------------------- */
 
 interface SliderProps {
@@ -64,19 +172,33 @@ interface SliderProps {
   step?: number
   /** Rendered on the right of the label — the current value, formatted. */
   display?: string
+  /** Adds an eye button that explains the control in plain English. */
+  explain?: ExplainKey
   onChange: (value: number) => void
 }
 
-export function Slider({ label, value, min, max, step = 1, display, onChange }: SliderProps) {
+export function Slider({
+  label,
+  value,
+  min,
+  max,
+  step = 1,
+  display,
+  explain,
+  onChange,
+}: SliderProps) {
   const id = useId()
   const pct = ((value - min) / (max - min)) * 100
 
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="flex items-baseline justify-between">
-        <label htmlFor={id} className="text-[11px] font-medium text-ui-300">
-          {label}
-        </label>
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="flex items-center gap-1.5">
+          <label htmlFor={id} className="text-[11px] font-medium text-ui-300">
+            {label}
+          </label>
+          {explain && <Explain topic={explain} />}
+        </span>
         <span className="font-mono text-[11px] text-ui-400 tabular-nums">
           {display ?? value}
         </span>
@@ -148,37 +270,44 @@ export function Toggle({
   onChange,
   label,
   hint,
+  explain,
 }: {
   checked: boolean
   onChange: (next: boolean) => void
   label: string
   hint?: string
+  explain?: ExplainKey
 }) {
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      onClick={() => onChange(!checked)}
-      className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg px-1 py-1.5 text-left transition-colors hover:bg-ui-850"
-    >
-      <span className="flex flex-col">
-        <span className="text-[11px] font-medium text-ui-200">{label}</span>
-        {hint && <span className="text-[10px] text-ui-500">{hint}</span>}
-      </span>
-      <span
-        className={cn(
-          'relative h-[18px] w-8 shrink-0 rounded-full transition-colors duration-200',
-          checked ? 'bg-brand' : 'bg-ui-700',
-        )}
+    /* The eye sits outside the switch button: nesting it would make the
+     * explanation unreachable by keyboard and toggle the control on click. */
+    <div className="flex w-full items-center gap-2 rounded-lg px-1 py-1.5 transition-colors hover:bg-ui-850">
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        className="flex min-w-0 flex-1 cursor-pointer items-center justify-between gap-3 bg-transparent text-left"
       >
-        <motion.span
-          className="absolute top-[2px] left-[2px] h-[14px] w-[14px] rounded-full bg-white shadow"
-          animate={{ x: checked ? 14 : 0 }}
-          transition={{ type: 'spring', stiffness: 600, damping: 34 }}
-        />
-      </span>
-    </button>
+        <span className="flex min-w-0 flex-col">
+          <span className="text-[11px] font-medium text-ui-200">{label}</span>
+          {hint && <span className="text-[10px] text-ui-500">{hint}</span>}
+        </span>
+        <span
+          className={cn(
+            'relative h-[18px] w-8 shrink-0 rounded-full transition-colors duration-200',
+            checked ? 'bg-brand' : 'bg-ui-700',
+          )}
+        >
+          <motion.span
+            className="absolute top-[2px] left-[2px] h-[14px] w-[14px] rounded-full bg-white shadow"
+            animate={{ x: checked ? 14 : 0 }}
+            transition={{ type: 'spring', stiffness: 600, damping: 34 }}
+          />
+        </span>
+      </button>
+      {explain && <Explain topic={explain} />}
+    </div>
   )
 }
 
@@ -332,17 +461,22 @@ export function PanelSection({
   title,
   children,
   action,
+  explain,
 }: {
   title: string
   children: ReactNode
   action?: ReactNode
+  explain?: ExplainKey
 }) {
   return (
     <section className="flex flex-col gap-2.5 border-b border-ui-850 px-3.5 py-3.5 last:border-b-0">
-      <div className="flex items-center justify-between">
-        <h3 className="m-0 text-[10px] font-semibold tracking-[0.13em] text-ui-500 uppercase">
-          {title}
-        </h3>
+      <div className="flex items-center justify-between gap-2">
+        <span className="flex items-center gap-1.5">
+          <h3 className="m-0 text-[10px] font-semibold tracking-[0.13em] text-ui-500 uppercase">
+            {title}
+          </h3>
+          {explain && <Explain topic={explain} />}
+        </span>
         {action}
       </div>
       {children}

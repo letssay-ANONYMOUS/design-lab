@@ -1,5 +1,5 @@
 import { ChoreoControls } from '@/components/chrome/TopBar'
-import { PanelSection, Slider, ToolButton } from '@/components/ui/primitives'
+import { PanelSection, Slider, Toggle, ToolButton } from '@/components/ui/primitives'
 import { cn } from '@/lib/cn'
 import { remixLayoutsOnly } from '@/lib/remix'
 import {
@@ -21,7 +21,9 @@ import { RotateCcw, Shuffle } from 'lucide-react'
 export function RightPanel() {
   const tokens = useLab((s) => s.page.tokens)
   const page = useLab((s) => s.page)
+  const view = useLab((s) => s.view)
   const setTokens = useLab((s) => s.setTokens)
+  const setView = useLab((s) => s.setView)
   const replacePage = useLab((s) => s.replacePage)
 
   const font = getFontPair(tokens.fontPairId)
@@ -107,6 +109,7 @@ export function RightPanel() {
         <div className="mt-1 flex flex-col gap-2.5">
           <Slider
             label="Base size"
+            explain="baseSize"
             value={tokens.baseSize}
             {...TOKEN_LIMITS.baseSize}
             display={`${tokens.baseSize}px`}
@@ -114,6 +117,7 @@ export function RightPanel() {
           />
           <Slider
             label="Scale ratio"
+            explain="typeScale"
             value={tokens.typeScale}
             {...TOKEN_LIMITS.typeScale}
             display={tokens.typeScale.toFixed(2)}
@@ -145,6 +149,7 @@ export function RightPanel() {
       <PanelSection title="Shape & rhythm">
         <Slider
           label="Corner radius"
+          explain="radius"
           value={tokens.radius}
           {...TOKEN_LIMITS.radius}
           display={`${tokens.radius}px`}
@@ -169,6 +174,7 @@ export function RightPanel() {
         </div>
         <Slider
           label="Spacing"
+          explain="spacing"
           value={tokens.spacing}
           {...TOKEN_LIMITS.spacing}
           display={`${tokens.spacing.toFixed(2)}×`}
@@ -182,6 +188,24 @@ export function RightPanel() {
 
       <PanelSection title="Motion">
         <ChoreoControls />
+      </PanelSection>
+
+      {/* Mirrors the toolbar toggles, but with room for the explanations. */}
+      <PanelSection title="Diagnostics">
+        <Toggle
+          checked={view.grid}
+          onChange={(grid) => setView({ grid })}
+          label="Grid overlay"
+          hint="12 columns over the page"
+          explain="grid"
+        />
+        <Toggle
+          checked={view.minimap}
+          onChange={(minimap) => setView({ minimap })}
+          label="Pacing rail"
+          hint="Loud/calm rhythm down the left"
+          explain="minimap"
+        />
       </PanelSection>
 
       <PanelSection title="Layout">
