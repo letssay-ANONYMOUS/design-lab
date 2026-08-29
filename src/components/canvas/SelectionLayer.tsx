@@ -1,4 +1,4 @@
-import { ToolButton } from '@/components/ui/primitives'
+import { Explain, ToolButton } from '@/components/ui/primitives'
 import { pickImage } from '@/lib/images'
 import { useLab } from '@/store/useLab'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -192,6 +192,35 @@ export function SelectionLayer({ scrollRef }: { scrollRef: React.RefObject<HTMLE
               {props.ratio ?? '4/3'}
             </ToolButton>
             <ToolButton size="sm" onClick={cyclePlaceholder} title="Cycle placeholder fill" icon={<Palette size={13} />} />
+          </>
+        )}
+
+        {component.type === 'bentoCard' && (
+          <>
+            <ToolButton
+              size="sm"
+              onClick={() => {
+                void pickImage().then((imageId) => {
+                  if (imageId) {
+                    updateComponent(section.id, component.id, {
+                      imageId,
+                      /* A card with no image band would swallow the upload
+                       * silently, so opening one is part of the same step. */
+                      mediaShare: props.mediaShare || 45,
+                    })
+                  }
+                })
+              }}
+              title="Upload a card image"
+              icon={<ImageIcon size={13} />}
+            />
+            <ToolButton
+              size="sm"
+              onClick={cyclePlaceholder}
+              title="Cycle the gradient fill"
+              icon={<Palette size={13} />}
+            />
+            <Explain topic="mediaShare" />
           </>
         )}
 

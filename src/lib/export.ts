@@ -1,5 +1,6 @@
 import { passesTrustDensity, resolveTone, scaleCount } from '@/lib/content'
 import { getFontPair, getPalette, tokensToVars } from '@/lib/tokens'
+import { CARD_FILLS } from '@/sections/parts'
 import type { Component, LabView, Page, Section } from '@/types'
 
 /**
@@ -385,8 +386,16 @@ ${image && section.variant === 'centered' ? indent(`<div className="mt-[var(--dl
 </section>`
       }
       const swap = section.meta.swapSides
+      /* An arbitrary-value class rather than an inline style, so the dragged
+       * split only applies from `md` up and the columns still stack on a
+       * phone the way the untouched default does. */
+      const split = section.meta.splitRatio
+      const cols =
+        split === undefined
+          ? 'md:grid-cols-2'
+          : `md:[grid-template-columns:${split}fr_${100 - split}fr]`
       return `<section className="${SECTION} ${bg}">
-  <div className="${CONTAINER} grid items-center gap-[var(--dl-gap-lg)] md:grid-cols-2">
+  <div className="${CONTAINER} grid items-center gap-[var(--dl-gap-lg)] ${cols}">
     <div className="flex flex-col items-start gap-[var(--dl-gap)] ${swap ? 'md:order-2' : ''}">
 ${copyStack('left')}
     </div>
@@ -484,8 +493,15 @@ ${join(
     const skin = ctx.loud
       ? 'border-[var(--dl-loud-text)]/16 bg-[var(--dl-loud-text)]/8'
       : 'border-[var(--dl-border)] bg-[var(--dl-surface)]'
+    const share = c.props.mediaShare ?? (span.row >= 2 ? 45 : 0)
+    const media =
+      share > 0
+        ? `  {/* Swap this for an <img className="h-full w-full object-cover" /> */}
+  <div className="shrink-0" style={{ flexBasis: '${share}%', background: ${JSON.stringify(CARD_FILLS[(c.props.placeholder ?? 0) % CARD_FILLS.length]!)} }} />
+`
+        : ''
     return `<div className="flex flex-col overflow-hidden rounded-[var(--dl-radius)] border ${skin}" style={{ gridColumn: 'span ${span.col}', gridRow: 'span ${span.row}' }}>
-  <div className="flex flex-col gap-1.5 p-[var(--dl-gap)]">
+${media}  <div className="flex flex-col gap-1.5 p-[var(--dl-gap)]">
     <h3 className="${H3} ${textColor(ctx)}">${s(copy(c, ctx))}</h3>
     <p className="${BODY} ${mutedColor(ctx)}">${s(copy(c, ctx, 'sub'))}</p>
   </div>

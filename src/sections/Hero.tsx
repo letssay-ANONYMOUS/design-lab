@@ -1,6 +1,7 @@
 import { CBadge, CButton, CImage, CStars, CStat, CText } from '@/components/canvas/atoms'
 import { Reveal } from '@/components/canvas/Reveal'
 import { useParallaxY } from '@/components/canvas/scroll'
+import { SplitLayout } from '@/components/canvas/SplitLayout'
 import { useLab } from '@/store/useLab'
 import type { Component, Section } from '@/types'
 import { motion } from 'framer-motion'
@@ -145,13 +146,12 @@ function HeroSplit({ section, comps }: HeroProps) {
 
   return (
     <div ref={ref} style={sectionPad()}>
-      <div
-        className="grid items-center"
-        style={{
-          ...CONTAINER,
-          gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)',
-          gap: 'calc(var(--dl-gap-lg) * 1.4)',
-        }}
+      <SplitLayout
+        section={section}
+        defaultRatio={50}
+        gap="calc(var(--dl-gap-lg) * 1.4)"
+        className="items-center"
+        style={CONTAINER}
       >
         <div style={{ order: swap ? 2 : 1 }}>
           <CopyStack comps={comps} />
@@ -163,7 +163,7 @@ function HeroSplit({ section, comps }: HeroProps) {
             </Reveal>
           </motion.div>
         )}
-      </div>
+      </SplitLayout>
     </div>
   )
 }
@@ -271,14 +271,12 @@ function HeroEditorial({ section, comps }: HeroProps) {
           </Reveal>
         )}
 
-        <div
-          className="grid"
-          style={{
-            marginTop: 'var(--dl-pad-y)',
-            gridTemplateColumns: 'minmax(0,5fr) minmax(0,7fr)',
-            gap: 'calc(var(--dl-gap-lg) * 1.2)',
-            alignItems: 'start',
-          }}
+        <SplitLayout
+          section={section}
+          defaultRatio={42}
+          gap="calc(var(--dl-gap-lg) * 1.2)"
+          className="items-start"
+          style={{ marginTop: 'var(--dl-pad-y)' }}
         >
           <div
             className="flex flex-col"
@@ -317,7 +315,7 @@ function HeroEditorial({ section, comps }: HeroProps) {
               </Reveal>
             </motion.div>
           )}
-        </div>
+        </SplitLayout>
       </div>
     </div>
   )
@@ -325,7 +323,7 @@ function HeroEditorial({ section, comps }: HeroProps) {
 
 /* --------------------------------- collage -------------------------------- */
 
-function HeroCollage({ comps }: HeroProps) {
+function HeroCollage({ section, comps }: HeroProps) {
   const ref = useRef<HTMLDivElement>(null)
   const { y, active } = useHeroParallax(ref)
   const p = byType(comps)
@@ -333,13 +331,12 @@ function HeroCollage({ comps }: HeroProps) {
 
   return (
     <div ref={ref} style={sectionPad()}>
-      <div
-        className="grid items-center"
-        style={{
-          ...CONTAINER,
-          gridTemplateColumns: 'minmax(0,6fr) minmax(0,6fr)',
-          gap: 'calc(var(--dl-gap-lg) * 1.3)',
-        }}
+      <SplitLayout
+        section={section}
+        defaultRatio={50}
+        gap="calc(var(--dl-gap-lg) * 1.3)"
+        className="items-center"
+        style={CONTAINER}
       >
         <CopyStack comps={comps} />
 
@@ -388,7 +385,7 @@ function HeroCollage({ comps }: HeroProps) {
             )
           )}
         </div>
-      </div>
+      </SplitLayout>
     </div>
   )
 }

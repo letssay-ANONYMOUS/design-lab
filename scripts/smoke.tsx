@@ -200,7 +200,25 @@ if (bento) {
   await flush(() => lab().updateComponent(bento.id, card.id, { span: { col: 8, row: 2 } }))
   const resized = lab().page.sections.find((s) => s.id === bento.id)!.components.find((c) => c.id === card.id)
   check('bento card span commits', resized?.props.span?.col === 8 && resized.props.span.row === 2)
+
+  await flush(() => lab().updateComponent(bento.id, card.id, { mediaShare: 70 }))
+  const shared = lab().page.sections.find((s) => s.id === bento.id)!.components.find((c) => c.id === card.id)
+  check('bento card image share commits', shared?.props.mediaShare === 70)
+  await flush(() => lab().updateComponent(bento.id, card.id, { mediaShare: 0 }))
+  check(
+    'image share of zero removes the band',
+    lab().page.sections.find((s) => s.id === bento.id)!.components.find((c) => c.id === card.id)
+      ?.props.mediaShare === 0,
+  )
 }
+
+/* Column split (feature: draggable divider on two-column heroes). */
+await flush(() => lab().loadPreset('clinic'))
+const splitHero = lab().page.sections[0]!
+await flush(() => lab().setSectionMeta(splitHero.id, { splitRatio: 64 }))
+check('column split commits', lab().page.sections[0]!.meta.splitRatio === 64)
+await flush(() => lab().setSectionMeta(splitHero.id, { splitRatio: undefined }))
+check('column split resets to the variant default', lab().page.sections[0]!.meta.splitRatio === undefined)
 
 /* Snapshot round-trip, including the A/B compare view. */
 await flush(() => lab().loadPreset('cafe'))

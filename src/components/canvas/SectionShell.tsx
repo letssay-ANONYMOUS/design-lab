@@ -1,7 +1,8 @@
 import { ComponentTray } from '@/components/canvas/ComponentTray'
-import { ToolButton } from '@/components/ui/primitives'
+import { Explain, ToolButton } from '@/components/ui/primitives'
 import { cn } from '@/lib/cn'
 import { sectionDef, variantLabel } from '@/lib/registry'
+import { hasSplitDivider } from '@/sections/parts'
 import { SectionRenderer } from '@/sections/SectionRenderer'
 import { useLab } from '@/store/useLab'
 import type { Section } from '@/types'
@@ -11,6 +12,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import {
   ChevronLeft,
   ChevronRight,
+  Columns2,
   Copy,
   GripVertical,
   Moon,
@@ -30,6 +32,7 @@ export function SectionShell({ section, index }: { section: Section; index: numb
   const duplicateSection = useLab((s) => s.duplicateSection)
   const removeSection = useLab((s) => s.removeSection)
   const setSectionMood = useLab((s) => s.setSectionMood)
+  const setSectionMeta = useLab((s) => s.setSectionMeta)
   const setActiveSection = useLab((s) => s.setActiveSection)
   const active = useLab((s) => s.activeSectionId === section.id)
 
@@ -133,6 +136,19 @@ export function SectionShell({ section, index }: { section: Section; index: numb
                 title={section.mood === 'loud' ? 'Loud section' : 'Calm section'}
                 icon={section.mood === 'loud' ? <Volume2 size={13} /> : <Moon size={13} />}
               />
+
+              {hasSplitDivider(section) && (
+                <>
+                  <ToolButton
+                    size="sm"
+                    disabled={section.meta.splitRatio === undefined}
+                    onClick={() => setSectionMeta(section.id, { splitRatio: undefined })}
+                    title="Reset the column split — drag the divider between the columns to change it"
+                    icon={<Columns2 size={13} />}
+                  />
+                  <Explain topic="splitRatio" />
+                </>
+              )}
 
               <ComponentTray sectionId={section.id} />
 

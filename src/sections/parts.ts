@@ -53,11 +53,32 @@ export function isLoud(section: Section): boolean {
   return section.mood === 'loud'
 }
 
+/** Variants built on `SplitLayout`, and so carrying a draggable column divider. */
+const SPLIT_VARIANTS: Record<string, readonly string[]> = {
+  hero: ['split', 'editorial', 'collage'],
+}
+
+export function hasSplitDivider(section: Section): boolean {
+  return SPLIT_VARIANTS[section.type]?.includes(section.variant) ?? false
+}
+
 export const CONTAINER: CSSProperties = {
   maxWidth: 1180,
   marginInline: 'auto',
   width: '100%',
 }
+
+/**
+ * Gradient fills for a bento card's image band, used until a photo is
+ * uploaded. Lives here rather than in the section so the exporter can emit the
+ * same fill the canvas is showing.
+ */
+export const CARD_FILLS = [
+  'linear-gradient(135deg, color-mix(in oklab, var(--dl-primary) 80%, black), color-mix(in oklab, var(--dl-accent) 50%, var(--dl-surface)))',
+  'linear-gradient(210deg, color-mix(in oklab, var(--dl-accent) 62%, var(--dl-surface)), color-mix(in oklab, var(--dl-primary) 70%, black))',
+  'radial-gradient(110% 110% at 15% 15%, color-mix(in oklab, var(--dl-accent) 60%, white), color-mix(in oklab, var(--dl-primary) 78%, black))',
+  'linear-gradient(320deg, color-mix(in oklab, var(--dl-text) 90%, black), color-mix(in oklab, var(--dl-primary) 62%, var(--dl-accent)))',
+]
 
 export const NARROW: CSSProperties = {
   maxWidth: 760,

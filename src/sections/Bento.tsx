@@ -2,17 +2,24 @@ import { CText } from '@/components/canvas/atoms'
 import { Reveal } from '@/components/canvas/Reveal'
 import { useIsStatic, useSectionId } from '@/components/canvas/SectionContext'
 import { useNode } from '@/components/canvas/useNode'
+import { pickImage, useImageUrl } from '@/lib/images'
 import { useLab } from '@/store/useLab'
 import type { Component, Section } from '@/types'
 import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
 import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
-import { CONTAINER, byType, sectionPad } from './parts'
+import { CARD_FILLS, CONTAINER, byType, sectionPad } from './parts'
 import { SectionHeader } from './SectionHeader'
 
 const COLS = 12
 const MIN_COL = 3
 const MAX_ROW = 3
+/** Below this the image band snaps shut — a sliver of photo reads as a bug. */
+const MIN_SHARE = 8
+/** Leaves room for at least the card's title under any image. */
+const MAX_SHARE = 82
+/** Padding plus roughly a title and one line of body — the copy's floor, in px. */
+const TEXT_FLOOR = 104
 
 interface Props {
   section: Section
@@ -93,13 +100,6 @@ export function Bento({ section, comps }: Props) {
   )
 }
 
-const CARD_FILLS = [
-  'linear-gradient(135deg, color-mix(in oklab, var(--dl-primary) 80%, black), color-mix(in oklab, var(--dl-accent) 50%, var(--dl-surface)))',
-  'linear-gradient(210deg, color-mix(in oklab, var(--dl-accent) 62%, var(--dl-surface)), color-mix(in oklab, var(--dl-primary) 70%, black))',
-  'radial-gradient(110% 110% at 15% 15%, color-mix(in oklab, var(--dl-accent) 60%, white), color-mix(in oklab, var(--dl-primary) 78%, black))',
-  'linear-gradient(320deg, color-mix(in oklab, var(--dl-text) 90%, black), color-mix(in oklab, var(--dl-primary) 62%, var(--dl-accent)))',
-]
-
 function BentoCard({
   c,
   index,
@@ -118,6 +118,7 @@ function BentoCard({
   const sectionId = useSectionId()
   const update = useLab((s) => s.updateComponent)
   const commit = useLab((s) => s.commit)
+  const url = useImageUrl(c.props.imageId)
 
   const stored = c.props.span ?? { col: 4, row: 1 }
   /* Live span while dragging. Committing on every pointermove would flood the
@@ -175,9 +176,54 @@ function BentoCard({
     window.addEventListener('pointerup', onUp)
   }
 
+  /* Live image share while dragging the divider, same reason as the span. */
+  const [shareDraft, setShareDraft] = useState<number | null>(null)
+  const tall = span.row >= 2
+  const storedShare = c.props.mediaShare ?? (tall ? 45 : 0)
+  const share = shareDraft ?? storedShare
+
+  const onMediaResizeStart = (event: ReactPointerEvent<HTMLElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+    const card = event.currentTarget.parentElement
+    if (!card) return
+
+    const handle = event.currentTarget
+    handle.setPointerCapture(event.pointerId)
+    const box = card.getBoundingClientRect()
+    let latest = storedShare
+
+    const onMove = (moveEvent: PointerEvent) => {
+      const raw = ((moveEvent.clientY - box.top) / box.height) * 100
+      /* Anything under the snap point collapses to nothing, so the same drag
+       * that grows the image can also remove it. */
+      const next = raw < MIN_SHARE ? 0 : Math.round(clamp(raw, 0, MAX_SHARE))
+      if (next !== latest) {
+        latest = next
+        setShareDraft(next)
+      }
+    }
+
+    const onUp = () => {
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+      setShareDraft(null)
+      if (latest !== storedShare) update(sectionId, c.id, { mediaShare: latest })
+    }
+
+    commit()
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', onUp)
+  }
+
+  const uploadImage = () => {
+    void pickImage().then((imageId) => {
+      if (imageId) update(sectionId, c.id, { imageId, mediaShare: share || 45 })
+    })
+  }
+
   const outline = variant === 'outline'
   const fill = CARD_FILLS[(c.props.placeholder ?? index) % CARD_FILLS.length]!
-  const tall = span.row >= 2
 
   return (
     <motion.div
@@ -188,6 +234,11 @@ function BentoCard({
         gridRow: `span ${span.row}`,
         position: 'relative',
         overflow: 'hidden',
+        /* The image takes a true percentage of the card, so a large share on a
+         * short card would crush the copy into nothing. Growing the card
+         * instead keeps the ratio honest and lets the row stretch — which is
+         * the whole point of dragging it: seeing what the balance costs. */
+        minHeight: share > 0 ? Math.round(TEXT_FLOOR / (1 - share / 100)) : undefined,
         borderRadius: 'var(--dl-radius)',
         background: outline
           ? 'transparent'
@@ -202,18 +253,92 @@ function BentoCard({
     >
       <Reveal index={index} style={{ height: '100%' }}>
         <div {...node} className="flex h-full flex-col">
-          {tall && (
-            <div style={{ flex: '1 1 45%', minHeight: 90, background: fill }} aria-hidden />
+          {share > 0 && (
+            <div
+              onClick={isStatic ? undefined : () => !c.props.imageId && uploadImage()}
+              onDoubleClick={
+                isStatic
+                  ? undefined
+                  : (event) => {
+                      event.stopPropagation()
+                      uploadImage()
+                    }
+              }
+              className={
+                !isStatic && !c.props.imageId ? 'relative cursor-pointer' : 'relative'
+              }
+              style={{
+                flex: `0 0 ${share}%`,
+                minHeight: 0,
+                background: url ? undefined : fill,
+                backgroundImage: url ? `url(${url})` : undefined,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }}
+            />
           )}
           <div
             className="flex flex-col"
-            style={{ gap: '6px', padding: 'var(--dl-gap)', flex: tall ? '0 0 auto' : '1 1 auto' }}
+            style={{
+              gap: '6px',
+              padding: 'var(--dl-gap)',
+              flex: '1 1 auto',
+              minHeight: 0,
+            }}
           >
             <CText c={c} as="h3" size="lg" heading weight={650} color={loud ? 'loud' : 'text'} />
             <CText c={c} field="sub" size="base" color={loud ? 'loud' : 'muted'} />
           </div>
         </div>
       </Reveal>
+
+      {!isStatic && (
+        <span
+          role="slider"
+          tabIndex={0}
+          aria-label={
+            share > 0
+              ? `Image share — ${share}% of the card. Drag up or down.`
+              : 'No image on this card. Drag down to give it one.'
+          }
+          aria-valuenow={share}
+          aria-valuemin={0}
+          aria-valuemax={MAX_SHARE}
+          onPointerDown={onMediaResizeStart}
+          onKeyDown={(event) => {
+            const step = event.key === 'ArrowDown' ? 1 : event.key === 'ArrowUp' ? -1 : 0
+            if (step === 0) return
+            event.preventDefault()
+            const next = clamp(storedShare + step * (event.shiftKey ? 10 : 2), 0, MAX_SHARE)
+            update(sectionId, c.id, { mediaShare: next < MIN_SHARE ? 0 : next })
+          }}
+          className="dl-resize absolute cursor-ns-resize"
+          style={{
+            left: 0,
+            right: 0,
+            /* Sits on the seam between image and text. At zero it rides the top
+             * edge of the card, which is the only affordance saying an image
+             * can be pulled out of a card that does not have one yet. */
+            top: `${share}%`,
+            marginTop: share === 0 ? 0 : -5,
+            height: 10,
+            touchAction: 'none',
+          }}
+        >
+          <span
+            className="pointer-events-none absolute top-1/2 left-1/2 block"
+            style={{
+              width: 42,
+              height: 5,
+              marginTop: share === 0 ? -1 : -2.5,
+              marginLeft: -21,
+              borderRadius: 999,
+              background: 'rgba(124,108,255,.92)',
+              boxShadow: '0 2px 6px rgba(0,0,0,.3)',
+            }}
+          />
+        </span>
+      )}
 
       {!isStatic && (
         <span

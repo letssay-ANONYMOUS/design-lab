@@ -56,6 +56,12 @@ export interface ComponentProps {
   logos?: string[]
   /** Bento / grid placement. */
   span?: { col: number; row: number }
+  /**
+   * Bento card: 0–85, the share of the card's height given to its image.
+   * Dragged from the divider between the image and the text. Undefined means
+   * "whatever the variant would have chosen", which is how presets stay put.
+   */
+  mediaShare?: number
   /** Higher tier = only shown at higher trust-density settings. */
   proofTier?: 1 | 2 | 3
   /** Marks price tables' recommended column. */
@@ -95,6 +101,13 @@ export interface SectionMeta {
   eyebrow?: string
   /** Bento: number of rows in the grid. */
   rows?: number
+  /**
+   * Two-column layouts: 22–78, the width of the left-hand column as a
+   * percentage. Defined by physical position rather than by role, so that
+   * dragging the divider right always widens the column on its left — even
+   * when `swapSides` has mirrored which column holds the copy.
+   */
+  splitRatio?: number
 }
 
 export interface Section {
