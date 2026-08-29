@@ -155,6 +155,32 @@ await flush(() => lab().setView({ squint: true, grid: true, trustDensity: 0 }))
 await flush(() => lab().setView({ squint: false, grid: false, trustDensity: 100 }))
 check('view toggles survive a round trip', lab().view.trustDensity === 100)
 
+/* Component-level editing (feature 4) and bento spans (feature 6). */
+await flush(() => lab().loadPreset('clinic'))
+const hero = lab().page.sections[0]!
+const heroCount = hero.components.length
+await flush(() => lab().addComponent(hero.id, 'badge'))
+check('component added', lab().page.sections[0]!.components.length === heroCount + 1)
+const added = lab().page.sections[0]!.components.at(-1)!
+await flush(() => lab().duplicateComponent(hero.id, added.id))
+check('component duplicated', lab().page.sections[0]!.components.length === heroCount + 2)
+await flush(() => lab().updateComponent(hero.id, added.id, { text: 'Edited inline' }))
+check(
+  'component text updates',
+  lab().page.sections[0]!.components.find((c) => c.id === added.id)?.props.text === 'Edited inline',
+)
+await flush(() => lab().removeComponent(hero.id, added.id))
+check('component removed', lab().page.sections[0]!.components.length === heroCount + 1)
+
+await flush(() => lab().loadPreset('cafe'))
+const bento = lab().page.sections.find((s) => s.type === 'bento')
+if (bento) {
+  const card = bento.components.find((c) => c.type === 'bentoCard')!
+  await flush(() => lab().updateComponent(bento.id, card.id, { span: { col: 8, row: 2 } }))
+  const resized = lab().page.sections.find((s) => s.id === bento.id)!.components.find((c) => c.id === card.id)
+  check('bento card span commits', resized?.props.span?.col === 8 && resized.props.span.row === 2)
+}
+
 /* Snapshot round-trip, including the A/B compare view. */
 await flush(() => lab().loadPreset('cafe'))
 const cafeName = lab().page.name
