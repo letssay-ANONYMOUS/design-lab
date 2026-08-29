@@ -134,11 +134,16 @@ export function FeatureGrid({ section, comps }: Props) {
                     : loud
                       ? 'color-mix(in oklab, var(--dl-loud-text) 7%, transparent)'
                       : 'var(--dl-surface)',
-                  border: bordered ? 'none' : '1px solid',
+                  /* Longhand only: mixing `border` with `borderLeft` makes
+                   * React warn about conflicting style properties. */
+                  borderStyle: 'solid',
                   borderColor: loud
                     ? 'color-mix(in oklab, var(--dl-loud-text) 14%, transparent)'
                     : 'var(--dl-border)',
-                  borderLeft: bordered && i > 0 ? '1px solid var(--dl-border)' : undefined,
+                  borderTopWidth: bordered ? 0 : 1,
+                  borderRightWidth: bordered ? 0 : 1,
+                  borderBottomWidth: bordered ? 0 : 1,
+                  borderLeftWidth: bordered ? (i > 0 ? 1 : 0) : 1,
                 }}
               >
                 <CIconFeature c={c} loud={loud} />

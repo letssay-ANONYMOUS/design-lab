@@ -1,0 +1,245 @@
+//#region src/lib/tokens.ts
+/**
+* Curated palettes only. The remix button picks from this list, which is why
+* it can't produce mud — there is no random colour anywhere in the app.
+*/
+var PALETTES = [
+	{
+		id: "clinical",
+		name: "Clinical Calm",
+		bg: "#ffffff",
+		surface: "#f2f6fb",
+		text: "#0e1a2b",
+		muted: "#5b6b80",
+		primary: "#1668d6",
+		primaryFg: "#ffffff",
+		accent: "#16b3a6",
+		border: "#dde6f2",
+		loudBg: "#0e1a2b",
+		loudText: "#eaf2ff"
+	},
+	{
+		id: "roast",
+		name: "Warm Roast",
+		bg: "#fbf7f1",
+		surface: "#f3ebe0",
+		text: "#231a13",
+		muted: "#7a6a5b",
+		primary: "#a4552b",
+		primaryFg: "#fff8f2",
+		accent: "#d99b3f",
+		border: "#e8dccb",
+		loudBg: "#2c1e15",
+		loudText: "#f7ece0"
+	},
+	{
+		id: "ink",
+		name: "Retail Ink",
+		bg: "#ffffff",
+		surface: "#f4f4f5",
+		text: "#09090b",
+		muted: "#6c6c78",
+		primary: "#111114",
+		primaryFg: "#ffffff",
+		accent: "#e0ff4f",
+		border: "#e4e4e9",
+		loudBg: "#09090b",
+		loudText: "#fafafa"
+	},
+	{
+		id: "sage",
+		name: "Sage Studio",
+		bg: "#f8faf7",
+		surface: "#eef3ea",
+		text: "#182018",
+		muted: "#5f6f5e",
+		primary: "#2f6b46",
+		primaryFg: "#f4fbf5",
+		accent: "#c2d96b",
+		border: "#dde6d8",
+		loudBg: "#17291d",
+		loudText: "#e9f3e6"
+	},
+	{
+		id: "terracotta",
+		name: "Terracotta",
+		bg: "#fdf8f5",
+		surface: "#f6e9e1",
+		text: "#2a1712",
+		muted: "#84645a",
+		primary: "#b4442e",
+		primaryFg: "#fff6f2",
+		accent: "#e8a03c",
+		border: "#eeddd3",
+		loudBg: "#3a1c14",
+		loudText: "#fbeae0"
+	},
+	{
+		id: "indigo",
+		name: "Indigo Night",
+		bg: "#ffffff",
+		surface: "#f1f0fe",
+		text: "#14122b",
+		muted: "#615e83",
+		primary: "#4b3ce0",
+		primaryFg: "#ffffff",
+		accent: "#ff9ec4",
+		border: "#e3e1fb",
+		loudBg: "#14122b",
+		loudText: "#eeecff"
+	},
+	{
+		id: "coastal",
+		name: "Coastal",
+		bg: "#fcfcfa",
+		surface: "#eaf1f2",
+		text: "#101f24",
+		muted: "#5a7078",
+		primary: "#0f6f80",
+		primaryFg: "#f2fbfc",
+		accent: "#f0b429",
+		border: "#dbe7e9",
+		loudBg: "#0c2129",
+		loudText: "#e6f4f6"
+	}
+];
+var FONT_PAIRS = [
+	{
+		id: "neutral",
+		name: "Inter / Inter",
+		heading: "'Inter', system-ui, sans-serif",
+		body: "'Inter', system-ui, sans-serif",
+		tracking: "-0.025em"
+	},
+	{
+		id: "editorial",
+		name: "Fraunces / Inter",
+		heading: "'Fraunces', Georgia, serif",
+		body: "'Inter', system-ui, sans-serif",
+		tracking: "-0.015em"
+	},
+	{
+		id: "technical",
+		name: "Space Grotesk / DM Sans",
+		heading: "'Space Grotesk', system-ui, sans-serif",
+		body: "'DM Sans', system-ui, sans-serif",
+		tracking: "-0.02em"
+	},
+	{
+		id: "luxury",
+		name: "Playfair / DM Sans",
+		heading: "'Playfair Display', Georgia, serif",
+		body: "'DM Sans', system-ui, sans-serif",
+		tracking: "-0.01em"
+	},
+	{
+		id: "product",
+		name: "Sora / Inter",
+		heading: "'Sora', system-ui, sans-serif",
+		body: "'Inter', system-ui, sans-serif",
+		tracking: "-0.03em"
+	}
+];
+var DEFAULT_TOKENS = {
+	paletteId: "clinical",
+	fontPairId: "neutral",
+	radius: 14,
+	spacing: 1,
+	typeScale: 1.25,
+	baseSize: 16
+};
+/** Bounds the token sliders — and the remix generator — share. */
+var TOKEN_LIMITS = {
+	radius: {
+		min: 0,
+		max: 32,
+		step: 1
+	},
+	spacing: {
+		min: .7,
+		max: 1.5,
+		step: .05
+	},
+	typeScale: {
+		min: 1.12,
+		max: 1.42,
+		step: .01
+	},
+	baseSize: {
+		min: 15,
+		max: 19,
+		step: 1
+	}
+};
+function getPalette(id) {
+	return PALETTES.find((p) => p.id === id) ?? PALETTES[0];
+}
+function getFontPair(id) {
+	return FONT_PAIRS.find((f) => f.id === id) ?? FONT_PAIRS[0];
+}
+var round = (n) => Math.round(n * 10) / 10;
+/**
+* Modular type scale. Exponents are tuned so that a hero H1 lands somewhere
+* between 28px and 96px across the full ratio range — small enough to stay
+* sane, large enough to actually feel like a hero.
+*/
+function typeSteps(base, ratio) {
+	const at = (exp) => round(base * ratio ** exp);
+	return {
+		sm: at(-.75),
+		base,
+		lg: at(.9),
+		h3: at(2),
+		h2: at(3.4),
+		h1: Math.min(96, Math.max(28, at(5)))
+	};
+}
+/**
+* The single source of truth for how tokens become CSS. Both the live canvas
+* and the JSX exporter read from this, so what you see is what ships.
+*/
+function tokensToVars(tokens) {
+	const palette = getPalette(tokens.paletteId);
+	const font = getFontPair(tokens.fontPairId);
+	const type = typeSteps(tokens.baseSize, tokens.typeScale);
+	const s = tokens.spacing;
+	return {
+		"--dl-bg": palette.bg,
+		"--dl-surface": palette.surface,
+		"--dl-text": palette.text,
+		"--dl-muted": palette.muted,
+		"--dl-primary": palette.primary,
+		"--dl-primary-fg": palette.primaryFg,
+		"--dl-accent": palette.accent,
+		"--dl-border": palette.border,
+		"--dl-loud-bg": palette.loudBg,
+		"--dl-loud-text": palette.loudText,
+		"--dl-radius": `${tokens.radius}px`,
+		"--dl-radius-sm": `${round(tokens.radius * .55)}px`,
+		"--dl-radius-lg": `${round(tokens.radius * 1.7)}px`,
+		"--dl-radius-pill": `${Math.max(999 * Math.sign(tokens.radius), 0)}px`,
+		"--dl-gap": `${round(24 * s)}px`,
+		"--dl-gap-sm": `${round(12 * s)}px`,
+		"--dl-gap-lg": `${round(40 * s)}px`,
+		"--dl-pad-y": `${round(96 * s)}px`,
+		"--dl-pad-x": `${round(48 * s)}px`,
+		"--dl-font-heading": font.heading,
+		"--dl-font-body": font.body,
+		"--dl-tracking-h": font.tracking,
+		"--dl-size-sm": `${type.sm}px`,
+		"--dl-size-base": `${type.base}px`,
+		"--dl-size-lg": `${type.lg}px`,
+		"--dl-size-h3": `${type.h3}px`,
+		"--dl-size-h2": `${type.h2}px`,
+		"--dl-size-h1": `${type.h1}px`
+	};
+}
+/** Merges a section's local override on top of the page tokens. */
+function effectiveTokens(page, override) {
+	return override ? {
+		...page,
+		...override
+	} : page;
+}
+//#endregion
+export { effectiveTokens as a, tokensToVars as c, TOKEN_LIMITS as i, typeSteps as l, FONT_PAIRS as n, getFontPair as o, PALETTES as r, getPalette as s, DEFAULT_TOKENS as t };

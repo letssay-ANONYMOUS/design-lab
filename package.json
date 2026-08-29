@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "typecheck": "tsc -b",
+    "smoke": "vite build --ssr scripts/smoke.tsx --outDir .tmp-smoke --logLevel error && node .tmp-smoke/smoke.js",
+    "check:export": "vite build --ssr scripts/check-export.ts --outDir .tmp-export-check --logLevel error && node .tmp-export-check/check-export.js && tsc --ignoreConfig --noEmit --jsx react-jsx --strict --target es2023 --module esnext --moduleResolution bundler --lib ES2023,DOM --skipLibCheck .export-check/clinic.tsx .export-check/cafe.tsx .export-check/retail.tsx && echo \"exported JSX typechecks clean\""
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -28,6 +31,7 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.1.0",
+    "jsdom": "^30.0.1",
     "oxlint": "^1.79.0",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",

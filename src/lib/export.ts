@@ -36,6 +36,69 @@ function indent(block: string, depth: number): string {
     .join('\n')
 }
 
+/**
+ * Net change in nesting caused by one line of generated JSX.
+ *
+ * Safe because this only ever reads output we produced ourselves: no `>` inside
+ * attribute values, no fragments, and comments (which do contain things like
+ * `<img>`) are skipped outright.
+ */
+function netTags(line: string): number {
+  if (line.startsWith('{/*') || line.startsWith('{"')) return 0
+  let net = 0
+  for (const [tag] of line.matchAll(/<\/?[A-Za-z][^<>]*?\/?>/g)) {
+    if (tag.startsWith('</')) net -= 1
+    else if (!tag.endsWith('/>')) net += 1
+  }
+  return net
+}
+
+/**
+ * Re-indents a JSX block from its own tag structure.
+ *
+ * Each section emitter composes strings at whatever depth was convenient to
+ * write, so hand-maintained indentation drifts the moment a variant nests one
+ * level deeper. Deriving it here means the exported file is always tidy no
+ * matter how the blocks were assembled.
+ */
+function reindent(jsx: string): string {
+  const out: string[] = []
+  let depth = 0
+  let inAttrs = false
+
+  for (const raw of jsx.split('\n')) {
+    /* Conditional class fragments leave double and trailing spaces behind. */
+    const line = raw
+      .trim()
+      .replace(/className="([^"]*)"/g, (_, value: string) => `className="${value.trim().replace(/\s+/g, ' ')}"`)
+    if (!line) continue
+
+    if (inAttrs) {
+      if (line === '>' || line === '/>') {
+        out.push('  '.repeat(depth) + line)
+        inAttrs = false
+        if (line === '>') depth += 1
+      } else {
+        out.push('  '.repeat(depth + 1) + line)
+      }
+      continue
+    }
+
+    const closing = line.startsWith('</')
+    if (closing) depth = Math.max(0, depth - 1)
+    out.push('  '.repeat(depth) + line)
+
+    /* An opening tag whose attributes wrap onto following lines. */
+    if (line.startsWith('<') && !line.endsWith('>')) {
+      inAttrs = true
+      continue
+    }
+    depth = Math.max(0, depth + netTags(line) + (closing ? 1 : 0))
+  }
+
+  return out.join('\n')
+}
+
 function componentName(section: Section, index: number): string {
   const base = section.type.charAt(0).toUpperCase() + section.type.slice(1)
   return `${base}${index + 1}`
@@ -114,15 +177,23 @@ function emitImage(c: Component, ratio?: string): string {
 />`
 }
 
+const STAR_PATH =
+  'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'
+
 function emitStars(c: Component, ctx: Ctx): string {
   const filled = Math.round(c.props.rating ?? 5)
+  /* Five literal stars rather than an `Array.from` map — the exported file is
+   * meant to be read and edited by hand, and a loop over a constant five is
+   * indirection for its own sake. */
+  const stars = Array.from({ length: 5 }, (_, i) =>
+    i < filled
+      ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="${STAR_PATH}" /></svg>`
+      : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.35" aria-hidden><path d="${STAR_PATH}" /></svg>`,
+  ).join('\n')
+
   return `<div className="flex items-center gap-2.5">
-  <span className="flex gap-0.5 text-[var(--dl-accent)]">
-    {Array.from({ length: 5 }, (_, i) => (
-      <svg key={i} width="16" height="16" viewBox="0 0 24 24" fill={i < ${filled} ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5" opacity={i < ${filled} ? 1 : 0.35}>
-        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-      </svg>
-    ))}
+  <span className="flex gap-0.5 text-[var(--dl-accent)]" role="img" aria-label=${JSON.stringify(`${filled} out of 5`)}>
+${indent(stars, 2)}
   </span>
   <span className="${SMALL} font-medium ${mutedColor(ctx)}">${s(copy(c, ctx, 'sub'))}</span>
 </div>`
@@ -494,7 +565,7 @@ export function generatePageJsx(page: Page, view: LabView): string {
 
   const bodies = page.sections
     .map((section, i) => {
-      const jsx = emitSection(section, view)
+      const jsx = reindent(emitSection(section, view))
       return `function ${componentName(section, i)}() {
   return (
 ${indent(jsx, 2)}

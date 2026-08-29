@@ -20,7 +20,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { Plus } from 'lucide-react'
-import { useEffect, useRef, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 
 /** The 12-column + 8pt overlay. Purely diagnostic; never exported. */
 function GridOverlay() {
@@ -54,6 +54,12 @@ export function Canvas({ onOpenPicker }: { onOpenPicker: () => void }) {
   const reorderSections = useLab((s) => s.reorderSections)
   const select = useLab((s) => s.select)
   const setActiveSection = useLab((s) => s.setActiveSection)
+
+  /* Sections mount one frame late, after the scroll container exists. Without
+   * this, the parallax and reveal hooks run against a still-null ref on the
+   * first render and silently fall back to measuring the document. */
+  const [scrollerReady, setScrollerReady] = useState(false)
+  useEffect(() => setScrollerReady(true), [])
 
   const sensors = useSensors(
     /* 6px of slop so a click-to-select never starts a drag by accident. */
@@ -115,6 +121,10 @@ export function Canvas({ onOpenPicker }: { onOpenPicker: () => void }) {
       <div className="relative min-h-0 flex-1 bg-ui-950">
         <div
           ref={scrollRef}
+          /* Positioning is set inline rather than by class because
+           * framer-motion reads the computed style to measure scroll offsets,
+           * and it has to hold even before the stylesheet lands. */
+          style={{ position: 'relative' }}
           className="dl-editing h-full overflow-y-auto overflow-x-hidden"
           onMouseDown={() => {
             select(null)
@@ -143,9 +153,10 @@ export function Canvas({ onOpenPicker }: { onOpenPicker: () => void }) {
                 items={page.sections.map((s) => s.id)}
                 strategy={verticalListSortingStrategy}
               >
-                {page.sections.map((section, index) => (
-                  <SectionShell key={section.id} section={section} index={index} />
-                ))}
+                {scrollerReady &&
+                  page.sections.map((section, index) => (
+                    <SectionShell key={section.id} section={section} index={index} />
+                  ))}
               </SortableContext>
             </DndContext>
 

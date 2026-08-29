@@ -122,8 +122,10 @@ function Pane({
   return (
     <div
       ref={innerRef}
-      className="absolute inset-0 overflow-y-auto overflow-x-hidden"
-      style={{ clipPath: clip }}
+      className="inset-0 overflow-y-auto overflow-x-hidden"
+      /* Inline, not a class: framer-motion reads computed position to measure
+       * scroll offsets inside this pane. */
+      style={{ position: 'absolute', clipPath: clip }}
     >
       <StaticContext.Provider value>
         <ScrollRootContext.Provider value={innerRef}>
