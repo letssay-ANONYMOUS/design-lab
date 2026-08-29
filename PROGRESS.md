@@ -81,6 +81,11 @@ check by hand.** `npm run smoke` mounts the app in jsdom and fails on any
 console error or warning — it caught all three warnings that existed at the time
 it was written. `npm run check:export` typechecks generated JSX as real source.
 
+## State at the end of the run
+
+`typecheck`, `lint`, `build`, `smoke` (28 checks) and `check:export` all pass,
+with zero lint warnings and a clean console.
+
 ## Known issues
 
 - **Production bundle is ~1.17 MB** (326 KB gzipped). Cause is identified:
@@ -89,10 +94,6 @@ it was written. `npm run check:export` typechecks generated JSX as real source.
   icons ship. It does not affect `npm run dev`, which is how this tool is used.
   The fix, if it ever matters, is deep imports from
   `lucide-react/dist/esm/icons/<name>.mjs`.
-- **`oxlint` reports 6 warnings, 0 errors.** Two are `set-state-in-effect` on
-  deliberate post-layout DOM measurement (`SelectionLayer`, `useImageUrl`); four
-  are `only-export-components` fast-refresh nits on `Reveal.tsx`, which exports
-  a context and two hooks alongside a component.
 - **Snapshot thumbnails can come back blank** if `html-to-image` hits a tainted
   canvas. The snapshot is still saved and still restores correctly — only the
   preview image is missing, and the card says so.
