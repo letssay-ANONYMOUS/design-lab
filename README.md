@@ -45,6 +45,15 @@ reverts, Enter or clicking away commits.
 `Backspace` deletes the selected element. `⌘Z` / `⇧⌘Z` undo and redo — including
 layout changes, remixes and snapshot restores.
 
+**Arrange** in the toolbar turns the whole page into a drag surface: pick up any
+element and drop it somewhere else, including into a different section. A blue
+line shows exactly where it will land before you let go.
+
+Anywhere two things share a card or a row, the divider between them is
+draggable. Bento cards have one between the image and the copy — drag it down to
+give the photo more of the card, drag it past the top to remove the image
+entirely. Two-column heroes have one in the gutter between the columns.
+
 ### Heroes
 
 Six archetypes: split, centered, full-bleed, editorial, collage, minimal. Cycle
@@ -77,6 +86,7 @@ and jump to it.
   hierarchy is not doing its job.
 - **Grid** — 8pt baseline plus a 12-column overlay.
 - **Pacing** — shows or hides the left rail.
+- **Arrange** — drag-to-rearrange mode, described above.
 - **Trust** — a density slider for proof. Elements carry a tier, so at low
   settings you keep only the strongest evidence and at high settings the page
   fills with logos, stats and testimonials. Drag it to zero to find out whether
@@ -91,6 +101,11 @@ and jump to it.
   produce mud: colours come from the palette list, radius snaps to seven stops,
   and the opener and closing ask stay loud while the middle stays calm.
 - **Export** — see below.
+
+Controls whose names are jargon carry a small eye. Click it for what the control
+does, why it matters, and one thing to try. Both side panels are resized by
+dragging their inner edge, so you can widen the canvas without ⌘+ scaling the
+tool along with it; double-click an edge to reset it.
 
 ### Snapshots (bottom)
 

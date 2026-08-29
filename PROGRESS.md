@@ -43,6 +43,31 @@ choreography panel (stagger, fade distance, parallax) with scroll playback.
 
 **10. Export** — a self-contained `.tsx` with copy and download.
 
+## Added after the first run
+
+**11. Arrange mode** — toolbar toggle that turns every element on the page into
+something you can pick up. A blue line shows where it will land, and elements
+can cross section boundaries. Hit-tested rather than wrapped (see below).
+
+**12. Image share on bento cards** — cards hold a real uploaded image, and the
+divider between the image and the text is draggable. Past the snap point the
+image is removed; a card without one keeps a handle at its top edge so there is
+somewhere to pull one out of.
+
+**13. Column split on two-column heroes** — split, editorial and collage share
+`SplitLayout`, whose divider sits in the gutter and is dragged. The section
+toolbar has a reset back to the variant's own default.
+
+**14. Explainer eyes** — a small eye next to controls whose names are jargon
+(stagger, parallax, trust density, squint, image share, column split…). Clicking
+one opens a card with what it does, why it matters, and one thing to try. All
+the copy is in `lib/explain.ts`.
+
+**15. Draggable side panels** — the pacing rail and the token panel are resized
+from their inner edges, so the canvas can be widened without ⌘+ scaling the
+whole tool. Double-click an edge to reset; drag a panel shut and the toolbar
+toggle brings it back.
+
 ## Decisions worth knowing
 
 **Selection is wrapper-free.** `useNode` hangs a `data-dl-node` attribute and
@@ -50,6 +75,18 @@ handlers on the element a section already renders. Wrapping components in a
 selection div would change flex and grid geometry the moment you clicked
 something, which makes judging a layout impossible. The ring is pure CSS under
 `.dl-editing`, and the toolbar is a portal that measures the live node.
+
+**Arrange mode hit-tests; it does not use @dnd-kit.** @dnd-kit runs the section
+list, but a sortable item needs a wrapper element and the point of the rule
+above is that components are never wrapped. So `lib/arrange.ts` finds the drop
+target with `document.elementsFromPoint` and the `data-dl-node` /
+`data-dl-owner` attributes that already existed. Which side of the hovered
+element the line goes is decided by whichever offset from centre is larger once
+normalised by the element's own size — that one rule gives a vertical line
+between buttons in a row and a horizontal one between stacked paragraphs, with
+no per-section configuration. Drag state lives in `useArrange`, outside the undo
+history, and the lifted-element styling is set on the DOM directly so a
+pointermove does not re-render every node on the canvas.
 
 **Tokens are CSS variables, not props.** `tokensToVars()` is the single source
 of truth and is read by the live canvas *and* the exporter, so what you see is
@@ -83,7 +120,7 @@ it was written. `npm run check:export` typechecks generated JSX as real source.
 
 ## State at the end of the run
 
-`typecheck`, `lint`, `build`, `smoke` (28 checks) and `check:export` all pass,
+`typecheck`, `lint`, `build`, `smoke` (40 checks) and `check:export` all pass,
 with zero lint warnings and a clean console.
 
 ## Known issues
