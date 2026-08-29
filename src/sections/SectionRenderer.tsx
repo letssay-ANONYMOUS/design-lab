@@ -2,7 +2,7 @@ import { SectionContext } from '@/components/canvas/SectionContext'
 import { visibleComponents } from '@/lib/content'
 import { effectiveTokens, tokensToVars } from '@/lib/tokens'
 import { useLab } from '@/store/useLab'
-import type { Section } from '@/types'
+import type { Section, Tokens } from '@/types'
 import type { CSSProperties } from 'react'
 import { Bento } from './Bento'
 import { CtaBanner } from './CtaBanner'
@@ -19,9 +19,11 @@ import { Testimonials } from './Testimonials'
  * chrome — the same component is used for the live canvas, the snapshot
  * thumbnail pass, and the A/B compare panes.
  */
-export function SectionRenderer({ section }: { section: Section }) {
+export function SectionRenderer({ section, tokens }: { section: Section; tokens?: Tokens }) {
   const density = useLab((s) => s.view.trustDensity)
-  const pageTokens = useLab((s) => s.page.tokens)
+  const livePageTokens = useLab((s) => s.page.tokens)
+  /* Compare panes render a snapshot's own tokens rather than the live page's. */
+  const pageTokens = tokens ?? livePageTokens
 
   const comps = visibleComponents(section, density)
   const vars = tokensToVars(effectiveTokens(pageTokens, section.tokensOverride))

@@ -1,122 +1,82 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { Canvas } from '@/components/canvas/Canvas'
+import { CompareView } from '@/components/chrome/CompareView'
+import { ExportModal } from '@/components/chrome/ExportModal'
+import { Minimap } from '@/components/chrome/Minimap'
+import { RightPanel } from '@/components/chrome/RightPanel'
+import { SectionPicker } from '@/components/chrome/SectionPicker'
+import { SnapshotStrip } from '@/components/chrome/SnapshotStrip'
+import { TopBar } from '@/components/chrome/TopBar'
+import { useLab } from '@/store/useLab'
+import { useEditing } from '@/store/useEditing'
+import { useEffect, useState } from 'react'
 
-function App() {
-  const [count, setCount] = useState(0)
-
+/** True when focus is somewhere text is being typed. */
+function isTyping(target: EventTarget | null): boolean {
+  const el = target as HTMLElement | null
+  if (!el) return false
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    el.isContentEditable ||
+    el.tagName === 'INPUT' ||
+    el.tagName === 'TEXTAREA' ||
+    el.tagName === 'SELECT'
   )
 }
 
-export default App
+export default function App() {
+  const [picker, setPicker] = useState(false)
+  const [exporting, setExporting] = useState(false)
+
+  const minimapOn = useLab((s) => s.view.minimap)
+  const comparing = useLab((s) => s.view.compare !== null)
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      const meta = event.metaKey || event.ctrlKey
+      const lab = useLab.getState()
+
+      if (meta && event.key.toLowerCase() === 'z') {
+        if (isTyping(event.target)) return
+        event.preventDefault()
+        if (event.shiftKey) lab.redo()
+        else lab.undo()
+        return
+      }
+
+      if (event.key === 'Escape') {
+        useEditing.getState().endEdit()
+        lab.select(null)
+        return
+      }
+
+      /* Destructive shortcuts stay off while text is being edited — otherwise
+       * Backspace at the start of a heading would delete the heading. */
+      if (isTyping(event.target)) return
+      if (event.key === 'Backspace' || event.key === 'Delete') {
+        const { selection } = lab
+        if (!selection) return
+        event.preventDefault()
+        lab.removeComponent(selection.sectionId, selection.componentId)
+      }
+    }
+
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
+  return (
+    <div className="flex h-screen w-screen flex-col overflow-hidden bg-ui-950 text-ui-200">
+      <TopBar onExport={() => setExporting(true)} />
+
+      <div className="flex min-h-0 flex-1">
+        {minimapOn && !comparing && <Minimap />}
+        {comparing ? <CompareView /> : <Canvas onOpenPicker={() => setPicker(true)} />}
+        <RightPanel />
+      </div>
+
+      <SnapshotStrip />
+
+      <SectionPicker open={picker} onClose={() => setPicker(false)} />
+      <ExportModal open={exporting} onClose={() => setExporting(false)} />
+    </div>
+  )
+}

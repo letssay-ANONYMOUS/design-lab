@@ -5,6 +5,7 @@ import {
   useEffect,
   useId,
   useRef,
+  useState,
   type ButtonHTMLAttributes,
   type ReactNode,
 } from 'react'
@@ -261,6 +262,67 @@ export function Modal({
       )}
     </AnimatePresence>,
     document.body,
+  )
+}
+
+/* -------------------------------- Popover --------------------------------- */
+
+/**
+ * A small anchored panel. Closes on Escape, on outside click, and when the
+ * canvas scrolls away underneath it — anything else leaves orphaned popovers
+ * floating over the artwork you are trying to judge.
+ */
+export function Popover({
+  trigger,
+  children,
+  width = 240,
+  align = 'start',
+}: {
+  trigger: (props: { open: boolean; toggle: () => void }) => ReactNode
+  children: ReactNode
+  width?: number
+  align?: 'start' | 'end'
+}) {
+  const [open, setOpen] = useState(false)
+  const wrapRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onDown = (event: MouseEvent) => {
+      if (!wrapRef.current?.contains(event.target as Node)) setOpen(false)
+    }
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  return (
+    <div ref={wrapRef} className="relative">
+      {trigger({ open, toggle: () => setOpen((v) => !v) })}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -4, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -3, scale: 0.98 }}
+            transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
+            className={cn(
+              'absolute top-[calc(100%+6px)] z-[150] rounded-xl border border-ui-700 bg-ui-900 p-3 shadow-2xl',
+              align === 'end' ? 'right-0' : 'left-0',
+            )}
+            style={{ width }}
+          >
+            {children}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }
 
