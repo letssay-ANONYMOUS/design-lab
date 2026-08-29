@@ -1,3 +1,4 @@
+import { ArrangeLayer } from '@/components/canvas/ArrangeLayer'
 import { ScrollRootContext } from '@/components/canvas/scroll'
 import { SectionShell } from '@/components/canvas/SectionShell'
 import { SelectionLayer } from '@/components/canvas/SelectionLayer'
@@ -130,7 +131,9 @@ export function Canvas({ onOpenPicker }: { onOpenPicker: () => void }) {
            * framer-motion reads the computed style to measure scroll offsets,
            * and it has to hold even before the stylesheet lands. */
           style={{ position: 'relative' }}
-          className="dl-editing h-full overflow-y-auto overflow-x-hidden"
+          className={`dl-editing h-full overflow-y-auto overflow-x-hidden${
+            view.arrange ? ' dl-arrange' : ''
+          }`}
           onMouseDown={() => {
             select(null)
             setActiveSection(null)
@@ -198,7 +201,8 @@ export function Canvas({ onOpenPicker }: { onOpenPicker: () => void }) {
           </div>
         </div>
 
-        {!view.squint && <SelectionLayer scrollRef={scrollRef} />}
+        {!view.squint && !view.arrange && <SelectionLayer scrollRef={scrollRef} />}
+        <ArrangeLayer />
       </div>
     </ScrollRootContext.Provider>
   )

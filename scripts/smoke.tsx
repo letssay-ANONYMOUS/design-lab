@@ -172,6 +172,27 @@ check(
 await flush(() => lab().removeComponent(hero.id, added.id))
 check('component removed', lab().page.sections[0]!.components.length === heroCount + 1)
 
+/* Arrange mode (drag to rearrange). The same-section move is the case with the
+ * index maths in it: pulling the item out first shifts every later slot down. */
+const dup = lab().page.sections[0]!.components.at(-1)!
+const order = lab().page.sections[0]!.components.map((c) => c.id)
+await flush(() => lab().moveComponent(hero.id, order[0]!, hero.id, order.length))
+check(
+  'component moves to the end of its own section',
+  lab().page.sections[0]!.components.at(-1)!.id === order[0],
+)
+const target = lab().page.sections[1]!
+const targetCount = target.components.length
+await flush(() => lab().moveComponent(hero.id, dup.id, target.id, 0))
+check(
+  'component moves across sections',
+  lab().page.sections[1]!.components.length === targetCount + 1 &&
+    lab().page.sections[1]!.components[0]!.id === dup.id &&
+    !lab().page.sections[0]!.components.some((c) => c.id === dup.id),
+)
+await flush(() => lab().undo())
+check('an arrange move is undoable', lab().page.sections[1]!.components.length === targetCount)
+
 await flush(() => lab().loadPreset('cafe'))
 const bento = lab().page.sections.find((s) => s.type === 'bento')
 if (bento) {

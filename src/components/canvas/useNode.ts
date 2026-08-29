@@ -1,7 +1,8 @@
 import { useIsStatic, useSectionId } from '@/components/canvas/SectionContext'
+import { beginArrangeDrag } from '@/lib/arrange'
 import { useEditing, type EditField } from '@/store/useEditing'
 import { useLab } from '@/store/useLab'
-import type { MouseEvent } from 'react'
+import type { MouseEvent, PointerEvent } from 'react'
 
 /**
  * Wires a rendered element into the selection system without wrapping it.
@@ -19,6 +20,7 @@ export function useNode(componentId: string) {
   const selected = useLab(
     (s) => s.selection?.componentId === componentId && s.selection.sectionId === sectionId,
   )
+  const arrange = useLab((s) => s.view.arrange)
   const setHover = useEditing((s) => s.setHover)
 
   if (isStatic) return { 'data-dl-node': componentId } as const
@@ -26,10 +28,18 @@ export function useNode(componentId: string) {
   return {
     'data-dl-node': componentId,
     'data-dl-selected': selected ? 'true' : undefined,
+    /* Read by the CSS in arrange mode for the grab cursor and lifted look, and
+     * by the drop-target search to know which section a node belongs to. */
+    'data-dl-owner': sectionId,
     onClick: (event: MouseEvent) => {
       event.stopPropagation()
       select({ sectionId, componentId })
     },
+    onPointerDown: arrange
+      ? (event: PointerEvent) => {
+          beginArrangeDrag(event, sectionId, componentId)
+        }
+      : undefined,
     onMouseEnter: () => setHover(componentId),
     onMouseLeave: () => setHover(null),
   } as const

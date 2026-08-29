@@ -184,6 +184,33 @@ body {
   transition: outline-color 0.12s ease;
 }
 
+/* Arrange mode. Every node becomes pick-up-able, so the affordance has to read
+   at a glance without adding chrome that shifts the layout. */
+.dl-arrange [data-dl-node] {
+  cursor: grab;
+}
+.dl-arrange [data-dl-node]:hover {
+  outline: 1.5px solid color-mix(in oklab, var(--color-brand) 75%, transparent);
+  outline-offset: 3px;
+  background-color: color-mix(in oklab, var(--color-brand) 7%, transparent);
+  border-radius: 3px;
+}
+/* Nested nodes both match :hover, so the ancestor steps back and lets the
+   innermost one — the thing actually under the cursor — win. */
+.dl-arrange [data-dl-node]:has([data-dl-node]:hover) {
+  outline-color: transparent;
+  background-color: transparent;
+}
+.dl-arrange.dl-dragging,
+.dl-arrange.dl-dragging [data-dl-node] {
+  cursor: grabbing;
+}
+.dl-arrange [data-dl-node][data-dl-lifted='true'] {
+  opacity: 0.4;
+  outline-color: transparent;
+  background-color: transparent;
+}
+
 .dl-resize {
   opacity: 0;
   transition:

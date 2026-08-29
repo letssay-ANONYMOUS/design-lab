@@ -75,6 +75,13 @@ interface LabState {
   duplicateComponent: (sectionId: string, componentId: string) => void
   updateComponent: (sectionId: string, componentId: string, patch: Partial<ComponentProps>) => void
   reorderComponents: (sectionId: string, from: number, to: number) => void
+  /** Drag-and-drop landing. Works within a section and across two. */
+  moveComponent: (
+    fromSectionId: string,
+    componentId: string,
+    toSectionId: string,
+    toIndex: number,
+  ) => void
   select: (selection: Selection | null) => void
 
   // view
@@ -254,6 +261,26 @@ export const useLab = create<LabState>()(
         reorderComponents: (sectionId, from, to) =>
           mutateSection(sectionId, (section) => {
             section.components = move(section.components, from, to)
+          }),
+
+        moveComponent: (fromSectionId, componentId, toSectionId, toIndex) =>
+          mutate((page) => {
+            const from = findSection(page, fromSectionId)
+            const to = findSection(page, toSectionId)
+            if (!from || !to) return page
+
+            const at = from.components.findIndex((c) => c.id === componentId)
+            if (at === -1) return page
+            const [item] = from.components.splice(at, 1)
+            if (!item) return page
+
+            /* Removing the item first shifts every later index down by one, so
+             * a same-section move past the original position has to compensate
+             * or the element lands one slot short of where it was dropped. */
+            const adjusted =
+              fromSectionId === toSectionId && toIndex > at ? toIndex - 1 : toIndex
+            to.components.splice(Math.max(0, Math.min(to.components.length, adjusted)), 0, item)
+            return page
           }),
 
         select: (selection) => set({ selection }),

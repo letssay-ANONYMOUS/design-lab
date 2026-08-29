@@ -8,6 +8,7 @@ import {
   Eye,
   Grid3x3,
   LayoutTemplate,
+  Move,
   PanelRight,
   Play,
   Redo2,
@@ -101,6 +102,21 @@ export function TopBar({ onExport }: { onExport: () => void }) {
           className="w-full rounded-lg border border-ui-700 bg-ui-850 px-2.5 py-1.5 text-[12px] text-ui-100 outline-none focus:border-brand"
         />
       </Popover>
+
+      <span className="h-5 w-px bg-ui-800" />
+
+      {/* Arrange ----------------------------------------------------------- */}
+      <span className="flex items-center gap-1">
+        <ToolButton
+          active={view.arrange}
+          onClick={() => setView({ arrange: !view.arrange })}
+          title="Arrange mode — drag any element to a new place"
+          icon={<Move size={14} />}
+        >
+          <Label>Arrange</Label>
+        </ToolButton>
+        <Explain topic="arrange" />
+      </span>
 
       <span className="h-5 w-px bg-ui-800" />
 
