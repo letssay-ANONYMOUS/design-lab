@@ -31,7 +31,16 @@ const DEFAULT_VIEW: LabView = {
   choreo: { stagger: 0.07, distance: 26, parallax: 30 },
   previewNonce: 0,
   compare: null,
+  leftWidth: 132,
+  rightWidth: 268,
+  arrange: false,
 }
+
+/** Drag bounds for the two side panels. Below the minimum they snap shut. */
+export const PANEL_LIMITS = {
+  left: { min: 96, max: 280, default: 132 },
+  right: { min: 216, max: 460, default: 268 },
+} as const
 
 interface LabState {
   page: Page

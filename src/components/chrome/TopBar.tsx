@@ -1,13 +1,14 @@
 import { Explain, Popover, Segmented, Slider, ToolButton, Toggle } from '@/components/ui/primitives'
 import { remixPage } from '@/lib/remix'
 import { PRESETS } from '@/presets'
-import { useLab } from '@/store/useLab'
+import { PANEL_LIMITS, useLab } from '@/store/useLab'
 import { TONES, type Tone } from '@/types'
 import {
   Code2,
   Eye,
   Grid3x3,
   LayoutTemplate,
+  PanelRight,
   Play,
   Redo2,
   ShieldCheck,
@@ -209,6 +210,15 @@ export function TopBar({ onExport }: { onExport: () => void }) {
       </div>
 
       <div className="ml-auto flex items-center gap-1">
+        <ToolButton
+          active={view.rightWidth > 0}
+          onClick={() =>
+            setView({ rightWidth: view.rightWidth > 0 ? 0 : PANEL_LIMITS.right.default })
+          }
+          title="Show or hide the token panel — drag its edge to resize"
+          icon={<PanelRight size={14} />}
+        />
+        <span className="mx-0.5 h-5 w-px bg-ui-800" />
         <ToolButton disabled={!canUndo} onClick={undo} title="Undo (⌘Z)" icon={<Undo2 size={14} />} />
         <ToolButton
           disabled={!canRedo}

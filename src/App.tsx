@@ -2,6 +2,7 @@ import { Canvas } from '@/components/canvas/Canvas'
 import { CompareView } from '@/components/chrome/CompareView'
 import { ExportModal } from '@/components/chrome/ExportModal'
 import { Minimap } from '@/components/chrome/Minimap'
+import { PanelResizer } from '@/components/chrome/PanelResizer'
 import { RightPanel } from '@/components/chrome/RightPanel'
 import { SectionPicker } from '@/components/chrome/SectionPicker'
 import { SnapshotStrip } from '@/components/chrome/SnapshotStrip'
@@ -28,6 +29,7 @@ export default function App() {
 
   const minimapOn = useLab((s) => s.view.minimap)
   const comparing = useLab((s) => s.view.compare !== null)
+  const rightOpen = useLab((s) => s.view.rightWidth > 0)
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -68,9 +70,15 @@ export default function App() {
       <TopBar onExport={() => setExporting(true)} />
 
       <div className="flex min-h-0 flex-1">
-        {minimapOn && !comparing && <Minimap />}
+        {minimapOn && !comparing && (
+          <>
+            <Minimap />
+            <PanelResizer side="left" />
+          </>
+        )}
         {comparing ? <CompareView /> : <Canvas onOpenPicker={() => setPicker(true)} />}
-        <RightPanel />
+        {rightOpen && <PanelResizer side="right" />}
+        {rightOpen && <RightPanel />}
       </div>
 
       <SnapshotStrip />

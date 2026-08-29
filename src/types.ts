@@ -188,4 +188,10 @@ export interface LabView {
   previewNonce: number
   /** Snapshot ids for A/B compare, or null. */
   compare: [string, string] | null
+  /** Pacing rail width in px. Dragged from its inner edge. */
+  leftWidth: number
+  /** Token panel width in px. 0 when collapsed. */
+  rightWidth: number
+  /** Drag-to-rearrange mode: every component becomes pick-up-able. */
+  arrange: boolean
 }

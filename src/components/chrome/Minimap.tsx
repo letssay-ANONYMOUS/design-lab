@@ -21,11 +21,15 @@ export function Minimap() {
   const setSectionMood = useLab((s) => s.setSectionMood)
   const setActiveSection = useLab((s) => s.setActiveSection)
   const palette = getPalette(tokens.paletteId)
+  const width = useLab((s) => s.view.leftWidth)
 
   const flags = flatlines(sections)
 
   return (
-    <aside className="flex w-[132px] shrink-0 flex-col border-r border-ui-800 bg-ui-900">
+    <aside
+      className="flex shrink-0 flex-col border-r border-ui-800 bg-ui-900"
+      style={{ width }}
+    >
       <div className="px-3 pt-3 pb-2">
         <h2 className="m-0 text-[10px] font-semibold tracking-[0.13em] text-ui-500 uppercase">
           Pacing

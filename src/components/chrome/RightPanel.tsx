@@ -30,7 +30,10 @@ export function RightPanel() {
   const steps = typeSteps(tokens.baseSize, tokens.typeScale)
 
   return (
-    <aside className="flex w-[268px] shrink-0 flex-col overflow-y-auto border-l border-ui-800 bg-ui-900">
+    <aside
+      className="flex shrink-0 flex-col overflow-y-auto border-l border-ui-800 bg-ui-900"
+      style={{ width: view.rightWidth }}
+    >
       <PanelSection
         title="Palette"
         action={
