@@ -1,5 +1,5 @@
+import { ScrollRootContext } from '@/components/canvas/scroll'
 import { StaticContext } from '@/components/canvas/SectionContext'
-import { ScrollRootContext } from '@/components/canvas/Reveal'
 import { ToolButton } from '@/components/ui/primitives'
 import { SectionRenderer } from '@/sections/SectionRenderer'
 import { useLab } from '@/store/useLab'

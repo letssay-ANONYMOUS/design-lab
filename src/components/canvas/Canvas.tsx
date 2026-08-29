@@ -1,4 +1,4 @@
-import { ScrollRootContext } from '@/components/canvas/Reveal'
+import { ScrollRootContext } from '@/components/canvas/scroll'
 import { SectionShell } from '@/components/canvas/SectionShell'
 import { SelectionLayer } from '@/components/canvas/SelectionLayer'
 import { EmptyState, ToolButton } from '@/components/ui/primitives'

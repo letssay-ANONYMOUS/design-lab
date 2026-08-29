@@ -63,6 +63,9 @@ export function SelectionLayer({ scrollRef }: { scrollRef: React.RefObject<HTMLE
   }, [selection])
 
   useEffect(() => {
+    /* Measuring a laid-out node is the one thing that genuinely cannot be
+     * derived during render, so the lint rule does not apply here. */
+    // oxlint-disable-next-line react/set-state-in-effect
     measure()
     if (!selection) return
 

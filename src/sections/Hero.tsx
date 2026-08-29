@@ -1,7 +1,9 @@
 import { CBadge, CButton, CImage, CStars, CStat, CText } from '@/components/canvas/atoms'
-import { Reveal, motion, useParallaxY } from '@/components/canvas/Reveal'
+import { Reveal } from '@/components/canvas/Reveal'
+import { useParallaxY } from '@/components/canvas/scroll'
 import { useLab } from '@/store/useLab'
 import type { Component, Section } from '@/types'
+import { motion } from 'framer-motion'
 import { useRef } from 'react'
 import { CONTAINER, NARROW, byType, sectionPad } from './parts'
 

@@ -1,8 +1,9 @@
 import { CLogos, CText } from '@/components/canvas/atoms'
-import { Reveal, motion } from '@/components/canvas/Reveal'
+import { Reveal } from '@/components/canvas/Reveal'
 import { scaleCount } from '@/lib/content'
 import { useLab } from '@/store/useLab'
 import type { Component, Section } from '@/types'
+import { motion } from 'framer-motion'
 import { CONTAINER, byType, sectionPad, surface } from './parts'
 
 interface Props {

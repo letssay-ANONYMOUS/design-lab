@@ -72,28 +72,25 @@ export async function deleteImage(key: string): Promise<void> {
 
 /** Resolves an IndexedDB key to a usable src. Returns null while loading. */
 export function useImageUrl(key: string | undefined): string | null {
-  const [url, setUrl] = useState<string | null>(() => (key ? (urlCache.get(key) ?? null) : null))
+  /* A cache hit is derived during render rather than pushed through state —
+   * an image that is already resolved should paint on the first pass, not the
+   * second. State carries only the asynchronous resolution, tagged with the
+   * key it belongs to so a fast key change never shows the previous image. */
+  const [loaded, setLoaded] = useState<{ key: string; url: string | null } | null>(null)
 
   useEffect(() => {
-    if (!key) {
-      setUrl(null)
-      return
-    }
-    const cached = urlCache.get(key)
-    if (cached) {
-      setUrl(cached)
-      return
-    }
+    if (!key || urlCache.has(key)) return
     let live = true
-    void getImageUrl(key).then((resolved) => {
-      if (live) setUrl(resolved)
+    void getImageUrl(key).then((url) => {
+      if (live) setLoaded({ key, url })
     })
     return () => {
       live = false
     }
   }, [key])
 
-  return url
+  if (!key) return null
+  return urlCache.get(key) ?? (loaded?.key === key ? loaded.url : null)
 }
 
 /** Opens a file picker and returns the stored key, or null if cancelled. */

@@ -1,6 +1,7 @@
 import { CAvatar, CQuote, CStars, CStat } from '@/components/canvas/atoms'
-import { Reveal, motion } from '@/components/canvas/Reveal'
+import { Reveal } from '@/components/canvas/Reveal'
 import type { Component, Section } from '@/types'
+import { motion } from 'framer-motion'
 import { CONTAINER, NARROW, byType, sectionPad, surface } from './parts'
 import { SectionHeader } from './SectionHeader'
 
