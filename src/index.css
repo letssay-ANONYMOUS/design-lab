@@ -1,0 +1,229 @@
+@import 'tailwindcss';
+
+/* ------------------------------------------------------------------ *
+ * Design Lab — two visual worlds live in this file.
+ *
+ *  1. "Chrome"  — the dark tool UI (top bar, panels, snapshot strip).
+ *                 Fixed palette. Never changes. Uses the `ui-*` vars.
+ *  2. "Canvas"  — the light artwork being designed.
+ *                 Fully token-driven via the `--dl-*` vars, which the
+ *                 token store rewrites live on `.dl-canvas-root`.
+ * ------------------------------------------------------------------ */
+
+@theme {
+  --color-ui-950: #0a0a0c;
+  --color-ui-900: #101014;
+  --color-ui-850: #15151b;
+  --color-ui-800: #1b1b22;
+  --color-ui-750: #22222b;
+  --color-ui-700: #2a2a35;
+  --color-ui-600: #3a3a48;
+  --color-ui-500: #55556a;
+  --color-ui-400: #7b7b93;
+  --color-ui-300: #a3a3b8;
+  --color-ui-200: #cbcbd8;
+  --color-ui-100: #e8e8f0;
+  --color-brand: #7c6cff;
+  --color-brand-soft: #a99cff;
+
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+:root {
+  color-scheme: dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-ui-950);
+  color: var(--color-ui-200);
+  font-family:
+    'Inter',
+    system-ui,
+    -apple-system,
+    sans-serif;
+  overflow: hidden;
+}
+
+/* Canvas token defaults — overwritten at runtime by the token store. */
+.dl-canvas-root {
+  --dl-bg: #ffffff;
+  --dl-surface: #f6f6f8;
+  --dl-text: #14141a;
+  --dl-muted: #6b6b7b;
+  --dl-primary: #4f46e5;
+  --dl-primary-fg: #ffffff;
+  --dl-accent: #f5b400;
+  --dl-border: #e6e6ec;
+
+  --dl-radius: 14px;
+  --dl-radius-sm: 8px;
+  --dl-radius-lg: 24px;
+  --dl-gap: 24px;
+  --dl-pad-y: 96px;
+  --dl-pad-x: 48px;
+
+  --dl-font-heading: 'Inter', system-ui, sans-serif;
+  --dl-font-body: 'Inter', system-ui, sans-serif;
+  --dl-size-base: 16px;
+  --dl-size-sm: 14px;
+  --dl-size-lg: 20px;
+  --dl-size-h3: 24px;
+  --dl-size-h2: 34px;
+  --dl-size-h1: 52px;
+  --dl-tracking-h: -0.02em;
+
+  font-family: var(--dl-font-body);
+  color: var(--dl-text);
+  background: var(--dl-bg);
+}
+
+/* Thin, unobtrusive scrollbars everywhere in the chrome. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-ui-700) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--color-ui-700);
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ui-600);
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Focus ring: consistent across every interactive element in the tool. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+/* Inline text editing — contenteditable nodes on the canvas. */
+[data-dl-editable]:focus {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+/* Range inputs. `--pct` is set inline so the filled track tracks the value. */
+.dl-slider::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--color-brand) 0%,
+    var(--color-brand) var(--pct, 50%),
+    var(--color-ui-700) var(--pct, 50%),
+    var(--color-ui-700) 100%
+  );
+}
+.dl-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 13px;
+  height: 13px;
+  margin-top: -4.5px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+  transition: transform 0.15s var(--ease-out-quint);
+}
+.dl-slider:hover::-webkit-slider-thumb,
+.dl-slider:focus-visible::-webkit-slider-thumb {
+  transform: scale(1.18);
+}
+.dl-slider::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--color-ui-700);
+}
+.dl-slider::-moz-range-progress {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--color-brand);
+}
+.dl-slider::-moz-range-thumb {
+  width: 13px;
+  height: 13px;
+  border: none;
+  border-radius: 999px;
+  background: #fff;
+}
+
+/* Canvas node affordances. Applied with outlines rather than wrappers so the
+   section layouts keep their exact flex/grid geometry. */
+.dl-editing [data-dl-node]:hover {
+  outline: 1px dashed color-mix(in oklab, var(--color-brand) 60%, transparent);
+  outline-offset: 4px;
+}
+.dl-editing [data-dl-node][data-dl-selected='true'],
+.dl-editing [data-dl-node][data-dl-selected='true']:hover {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 4px;
+}
+.dl-editing [data-dl-node] {
+  transition: outline-color 0.12s ease;
+}
+
+.dl-resize {
+  opacity: 0;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s var(--ease-out-quint);
+}
+.dl-editing [data-dl-node]:hover ~ .dl-resize,
+.dl-editing *:hover > .dl-resize,
+.dl-resize:focus-visible {
+  opacity: 1;
+}
+.dl-resize:hover {
+  transform: scale(1.15);
+}
+
+/* Buttons on the canvas are artwork, not controls — but they should still
+   feel alive when the user is designing hover states. */
+.dl-editing .dl-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.14), 0 14px 30px -14px rgba(0, 0, 0, 0.5);
+}
+
+/* The 8pt baseline + 12-col overlay used by the grid toggle. */
+.dl-grid-overlay {
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(124, 108, 255, 0.16) 0px,
+      rgba(124, 108, 255, 0.16) 1px,
+      transparent 1px,
+      transparent 8px
+    );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
