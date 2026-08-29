@@ -20,7 +20,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { Plus } from 'lucide-react'
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 
 /** The 12-column + 8pt overlay. Purely diagnostic; never exported. */
 function GridOverlay() {
@@ -55,11 +55,16 @@ export function Canvas({ onOpenPicker }: { onOpenPicker: () => void }) {
   const select = useLab((s) => s.select)
   const setActiveSection = useLab((s) => s.setActiveSection)
 
-  /* Sections mount one frame late, after the scroll container exists. Without
+  /* Sections mount one render late, after the scroll container exists. Without
    * this, the parallax and reveal hooks run against a still-null ref on the
-   * first render and silently fall back to measuring the document. */
+   * first render and silently fall back to measuring the document. A callback
+   * ref rather than an effect, so the flag flips exactly when the node
+   * attaches. */
   const [scrollerReady, setScrollerReady] = useState(false)
-  useEffect(() => setScrollerReady(true), [])
+  const attachScroller = useCallback((node: HTMLDivElement | null) => {
+    scrollRef.current = node
+    setScrollerReady(node !== null)
+  }, [])
 
   const sensors = useSensors(
     /* 6px of slop so a click-to-select never starts a drag by accident. */
@@ -120,7 +125,7 @@ export function Canvas({ onOpenPicker }: { onOpenPicker: () => void }) {
     <ScrollRootContext.Provider value={scrollRef}>
       <div className="relative min-h-0 flex-1 bg-ui-950">
         <div
-          ref={scrollRef}
+          ref={attachScroller}
           /* Positioning is set inline rather than by class because
            * framer-motion reads the computed style to measure scroll offsets,
            * and it has to hold even before the stylesheet lands. */

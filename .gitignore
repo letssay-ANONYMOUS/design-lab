@@ -12,9 +12,10 @@ dist
 dist-ssr
 *.local
 
-# `npm run check:export` scratch
+# Build scratch for the verification scripts
 .export-check
 .tmp-export-check
+.tmp-smoke
 
 # Editor directories and files
 .vscode/*

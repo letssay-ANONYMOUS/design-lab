@@ -27,6 +27,15 @@ const TONE_HINT: Record<Tone, string> = {
   urgent: 'Now first. Short lines, scarcity, a clear next step.',
 }
 
+/**
+ * Button labels collapse to icons on narrower windows. The toolbar is dense
+ * enough that at 1280px the alternative is either a horizontal scrollbar or
+ * controls sliding off the edge, and both are worse than a tooltip.
+ */
+function Label({ children }: { children: string }) {
+  return <span className="hidden xl:inline">{children}</span>
+}
+
 /** The emotional-engineering toolbar: everything that changes how a page feels. */
 export function TopBar({ onExport }: { onExport: () => void }) {
   const page = useLab((s) => s.page)
@@ -60,7 +69,7 @@ export function TopBar({ onExport }: { onExport: () => void }) {
         width={272}
         trigger={({ open, toggle }) => (
           <ToolButton active={open} onClick={toggle} icon={<LayoutTemplate size={14} />}>
-            {PRESETS.find((p) => p.id === presetId)?.name ?? 'Custom'}
+            <span className="max-w-[168px] truncate">{page.name}</span>
           </ToolButton>
         )}
       >
@@ -73,7 +82,9 @@ export function TopBar({ onExport }: { onExport: () => void }) {
               key={preset.id}
               type="button"
               onClick={() => loadPreset(preset.id)}
-              className="cursor-pointer rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-ui-800"
+              className={`cursor-pointer rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-ui-800 ${
+                preset.id === presetId ? 'bg-brand/12 shadow-[inset_0_0_0_1px_rgba(124,108,255,.32)]' : ''
+              }`}
             >
               <span className="block text-[12px] font-medium text-ui-100">{preset.name}</span>
               <span className="block text-[10px] text-ui-500">{preset.vertical}</span>
@@ -99,7 +110,7 @@ export function TopBar({ onExport }: { onExport: () => void }) {
         title="Squint test — blur everything to check the hierarchy survives"
         icon={<Eye size={14} />}
       >
-        Squint
+        <Label>Squint</Label>
       </ToolButton>
       <ToolButton
         active={view.grid}
@@ -107,7 +118,7 @@ export function TopBar({ onExport }: { onExport: () => void }) {
         title="8pt baseline + 12-column overlay"
         icon={<Grid3x3 size={14} />}
       >
-        Grid
+        <Label>Grid</Label>
       </ToolButton>
       <ToolButton
         active={view.minimap}
@@ -115,7 +126,7 @@ export function TopBar({ onExport }: { onExport: () => void }) {
         title="Contrast-pacing minimap"
         icon={<Waves size={14} />}
       >
-        Pacing
+        <Label>Pacing</Label>
       </ToolButton>
 
       {/* Trust density ----------------------------------------------------- */}
@@ -145,8 +156,8 @@ export function TopBar({ onExport }: { onExport: () => void }) {
       <Popover
         width={252}
         trigger={({ open, toggle }) => (
-          <ToolButton active={open} onClick={toggle} icon={<Play size={14} />}>
-            Motion
+          <ToolButton active={open} onClick={toggle} title="Scroll choreography" icon={<Play size={14} />}>
+            <Label>Motion</Label>
           </ToolButton>
         )}
       >
@@ -186,7 +197,7 @@ export function TopBar({ onExport }: { onExport: () => void }) {
 
       {/* Voice ------------------------------------------------------------- */}
       <div className="flex items-center gap-1.5" title={TONE_HINT[view.tone]}>
-        <span className="text-[10px] font-semibold tracking-[0.13em] text-ui-500 uppercase">
+        <span className="hidden text-[10px] font-semibold tracking-[0.13em] text-ui-500 uppercase 2xl:inline">
           Voice
         </span>
         <Segmented value={view.tone} options={TONE_OPTIONS} onChange={setTone} className="w-[186px]" />
