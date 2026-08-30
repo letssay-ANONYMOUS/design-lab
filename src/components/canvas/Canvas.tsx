@@ -55,6 +55,7 @@ export function Canvas({ onOpenPicker }: { onOpenPicker: () => void }) {
   const reorderSections = useLab((s) => s.reorderSections)
   const select = useLab((s) => s.select)
   const setActiveSection = useLab((s) => s.setActiveSection)
+  const phone = view.viewport === 'phone'
 
   /* Sections mount one render late, after the scroll container exists. Without
    * this, the parallax and reveal hooks run against a still-null ref on the
@@ -124,16 +125,33 @@ export function Canvas({ onOpenPicker }: { onOpenPicker: () => void }) {
 
   return (
     <ScrollRootContext.Provider value={scrollRef}>
-      <div className="relative min-h-0 flex-1 bg-ui-950">
+      <div
+        className={`relative min-h-0 flex-1 bg-ui-950 ${
+          phone ? 'flex items-stretch justify-center px-5 py-4' : ''
+        }`}
+      >
         <div
-          ref={attachScroller}
+          className={
+            phone
+              ? 'relative h-full w-[418px] overflow-hidden rounded-[36px] border-[6px] border-ui-750 bg-ui-900 p-[5px] shadow-[0_28px_80px_-28px_rgba(0,0,0,.85),inset_0_1px_0_rgba(255,255,255,.08)]'
+              : 'h-full w-full'
+          }
+        >
+          {phone && (
+            <div className="flex h-7 items-center justify-between px-3 text-[9px] font-semibold tracking-[0.12em] text-ui-500 uppercase">
+              <span>Phone canvas</span>
+              <span className="font-mono tracking-normal text-ui-400">390 × responsive</span>
+            </div>
+          )}
+          <div
+            ref={attachScroller}
           /* Positioning is set inline rather than by class because
            * framer-motion reads the computed style to measure scroll offsets,
            * and it has to hold even before the stylesheet lands. */
           style={{ position: 'relative' }}
-          className={`dl-editing h-full overflow-y-auto overflow-x-hidden${
-            view.arrange ? ' dl-arrange' : ''
-          }`}
+          className={`dl-editing ${phone ? 'dl-phone h-[calc(100%-28px)] rounded-[26px]' : 'h-full'} overflow-y-auto overflow-x-hidden${
+              view.arrange ? ' dl-arrange' : ''
+            }`}
           onMouseDown={() => {
             select(null)
             setActiveSection(null)
@@ -144,7 +162,8 @@ export function Canvas({ onOpenPicker }: { onOpenPicker: () => void }) {
             className="dl-canvas-root relative mx-auto min-h-full"
             style={{
               ...(tokensToVars(page.tokens) as CSSProperties),
-              maxWidth: 1440,
+              width: phone ? 390 : undefined,
+              maxWidth: phone ? 390 : 1440,
               filter: view.squint ? 'blur(7px) saturate(1.05)' : undefined,
               transition: 'filter .28s cubic-bezier(.22,1,.36,1)',
             }}
@@ -199,6 +218,7 @@ export function Canvas({ onOpenPicker }: { onOpenPicker: () => void }) {
               </div>
             )}
           </div>
+        </div>
         </div>
 
         {!view.squint && !view.arrange && <SelectionLayer scrollRef={scrollRef} />}

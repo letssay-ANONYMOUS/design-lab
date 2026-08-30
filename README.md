@@ -1,8 +1,8 @@
 # Design Lab
 
-A local playground for practising web design — layout, storytelling, and the
-parts of a page that do emotional work. You start from a realistic client page
-(a clinic, a café, a retail brand), then reshape it: swap hero archetypes, cycle
+A local playground for practising web design — layout, storytelling, conversion
+psychology, and the parts of a page that do emotional work. Start from one of
+twelve realistic client pages, then reshape it: swap hero archetypes, cycle
 section layouts, retune the type scale, change the voice of the copy, blur the
 whole thing to check the hierarchy still reads, and save snapshots so you can
 put two directions side by side.
@@ -23,7 +23,7 @@ Then open the URL Vite prints (usually <http://localhost:5173>).
 | `npm run typecheck` | Types only |
 | `npm run lint` | oxlint |
 | `npm run smoke` | Mounts the app in jsdom, exercises every feature, fails on any console error or warning |
-| `npm run check:export` | Generates JSX for all three presets and typechecks the output as standalone React |
+| `npm run check:export` | Generates JSX for every preset and typechecks the output as standalone React |
 
 ---
 
@@ -44,6 +44,30 @@ reverts, Enter or clicking away commits.
 
 `Backspace` deletes the selected element. `⌘Z` / `⇧⌘Z` undo and redo — including
 layout changes, remixes and snapshot restores.
+
+The desktop and phone icons beside the page name switch the editing viewport.
+Phone mode is a real 390px responsive reflow rather than a scaled screenshot:
+two-column layouts stack, bento stories become full-width chapters, typography
+and spacing retune, and the same inline editing controls remain available.
+
+### The template strategy library
+
+Open the current page name in the top bar to enter the strategy library. Every
+template includes a visual preview, conversion thesis, psychological principles,
+emotional arc, story sequence, scroll intention, strengths, trade-offs, and an
+honest note about when another system is more effective.
+
+Select **Compare** on any two templates for a head-to-head view of trust, warmth,
+urgency, clarity, and drama. The comparison is intentionally contextual: it
+explains which system wins for which customer doubt instead of pretending there
+is one universally best landing page.
+
+The expanded collection covers care, hospitality, design commerce, enterprise
+technology, creative services, and public-good fundraising. The Signature tier
+adds Orison One, Kestrel R1, and Field C1: launch systems built around a single
+hero object, progressive disclosure, a sticky story rail, published proof, and
+controlled motion. Seven directions ship with art-directed, project-local
+campaign imagery that remains available in the live canvas and exported JSX.
 
 **Arrange** in the toolbar turns the whole page into a drag surface: pick up any
 element and drop it somewhere else, including into a different section. A blue
@@ -67,7 +91,7 @@ overlay controls for full-bleed heroes.
 
 ### The token panel (right)
 
-Seven palettes, five font pairings, a radius scale with snap stops, a spacing
+Sixteen palettes, five font pairings, a radius scale with snap stops, a spacing
 multiplier and a modular type scale with a live ladder underneath it. Every
 control writes a CSS custom property on the canvas root, so changes land
 instantly across the whole page — and the exported file uses exactly the same
@@ -146,7 +170,7 @@ src/
   store/
     useLab.ts       page, view, snapshots, undo/redo, persistence
     useEditing.ts   ephemeral inline-edit state
-  presets/          clinic, café, retail — real copy, three voices each
+  presets/          twelve complete page systems, real copy, three voices each
   sections/         one file per section type, all variants inside
   components/
     canvas/         editing chrome, selection, inline editing, atoms

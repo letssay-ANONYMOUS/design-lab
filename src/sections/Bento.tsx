@@ -33,6 +33,75 @@ export function Bento({ section, comps }: Props) {
   const addComponent = useLab((s) => s.addComponent)
   const loud = section.variant === 'contrast'
 
+  if (section.variant === 'storyRail') {
+    return (
+      <div style={{ ...sectionPad(), background: 'var(--dl-bg)', color: 'var(--dl-text)' }}>
+        <div
+          className="grid"
+          style={{
+            ...CONTAINER,
+            gridTemplateColumns: 'minmax(0,4fr) minmax(0,7fr)',
+            gap: 'calc(var(--dl-gap-lg) * 1.5)',
+            alignItems: 'start',
+          }}
+        >
+          <div style={{ position: 'sticky', top: 32 }}>
+            <SectionHeader
+              subheadings={p.subheadings}
+              headings={p.headings}
+              paragraphs={p.paragraphs}
+            />
+            <p
+              style={{
+                margin: 0,
+                maxWidth: '32ch',
+                fontFamily: 'var(--dl-font-body)',
+                fontSize: 'var(--dl-size-sm)',
+                lineHeight: 1.55,
+                color: 'var(--dl-muted)',
+              }}
+            >
+              Each chapter holds while the next one enters, turning specifications into a
+              controlled product story rather than a feature dump.
+            </p>
+          </div>
+          <div className="flex flex-col">
+            {p.cards.map((card, index) => (
+              <Reveal key={card.id} index={index}>
+                <article
+                  className="flex flex-col justify-between"
+                  style={{
+                    minHeight: '42vh',
+                    gap: 'var(--dl-gap-lg)',
+                    padding: 'var(--dl-gap-lg) 0',
+                    borderTop: '1px solid var(--dl-border)',
+                  }}
+                >
+                  <span
+                    style={{
+                      fontFamily: 'var(--dl-font-body)',
+                      fontSize: 'var(--dl-size-sm)',
+                      fontWeight: 650,
+                      letterSpacing: '0.14em',
+                      textTransform: 'uppercase',
+                      color: 'var(--dl-primary)',
+                    }}
+                  >
+                    Chapter {String(index + 1).padStart(2, '0')}
+                  </span>
+                  <div className="flex flex-col" style={{ gap: 'var(--dl-gap-sm)', maxWidth: 680 }}>
+                    <CText c={card} as="h3" size="h2" heading weight={650} balance />
+                    <CText c={card} field="sub" size="lg" color="muted" />
+                  </div>
+                </article>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div
       style={{
@@ -118,7 +187,8 @@ function BentoCard({
   const sectionId = useSectionId()
   const update = useLab((s) => s.updateComponent)
   const commit = useLab((s) => s.commit)
-  const url = useImageUrl(c.props.imageId)
+  const uploadedUrl = useImageUrl(c.props.imageId)
+  const url = uploadedUrl ?? c.props.assetSrc
 
   const stored = c.props.span ?? { col: 4, row: 1 }
   /* Live span while dragging. Committing on every pointermove would flood the
@@ -255,7 +325,7 @@ function BentoCard({
         <div {...node} className="flex h-full flex-col">
           {share > 0 && (
             <div
-              onClick={isStatic ? undefined : () => !c.props.imageId && uploadImage()}
+              onClick={isStatic ? undefined : () => !c.props.imageId && !c.props.assetSrc && uploadImage()}
               onDoubleClick={
                 isStatic
                   ? undefined
@@ -265,7 +335,9 @@ function BentoCard({
                     }
               }
               className={
-                !isStatic && !c.props.imageId ? 'relative cursor-pointer' : 'relative'
+                !isStatic && !c.props.imageId && !c.props.assetSrc
+                  ? 'relative cursor-pointer'
+                  : 'relative'
               }
               style={{
                 flex: `0 0 ${share}%`,

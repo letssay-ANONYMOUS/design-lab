@@ -96,6 +96,7 @@ export const SECTION_DEFS: SectionDef[] = [
       { id: 'soft', label: 'Soft' },
       { id: 'outline', label: 'Outline' },
       { id: 'contrast', label: 'Contrast' },
+      { id: 'storyRail', label: 'Story rail' },
     ],
   },
   {

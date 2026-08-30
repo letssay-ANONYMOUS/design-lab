@@ -66,7 +66,7 @@ export default function App() {
   }, [])
 
   return (
-    <div className="flex h-screen w-screen flex-col overflow-hidden bg-ui-950 text-ui-200">
+    <div className="flex h-[100dvh] w-screen flex-col overflow-hidden bg-ui-950 text-ui-200">
       <TopBar onExport={() => setExporting(true)} />
 
       <div className="flex min-h-0 flex-1">

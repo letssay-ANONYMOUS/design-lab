@@ -300,7 +300,8 @@ export function CImage({
 }) {
   const node = useNode(c.id)
   const isStatic = useIsStatic()
-  const url = useImageUrl(c.props.imageId)
+  const uploadedUrl = useImageUrl(c.props.imageId)
+  const url = uploadedUrl ?? c.props.assetSrc
   const sectionId = useSectionId()
   const update = useLab((s) => s.updateComponent)
   const fill = PLACEHOLDERS[(c.props.placeholder ?? 0) % PLACEHOLDERS.length]!
@@ -319,7 +320,7 @@ export function CImage({
     : {
         onClick: (event: React.MouseEvent) => {
           node.onClick?.(event)
-          if (!c.props.imageId) upload()
+          if (!c.props.imageId && !c.props.assetSrc) upload()
         },
         onDoubleClick: (event: React.MouseEvent) => {
           event.stopPropagation()
@@ -341,7 +342,7 @@ export function CImage({
       {...handlers}
       className={cn(
         'relative overflow-hidden bg-cover bg-center',
-        !isStatic && !c.props.imageId && 'cursor-pointer',
+        !isStatic && !c.props.imageId && !c.props.assetSrc && 'cursor-pointer',
         className,
       )}
       style={{

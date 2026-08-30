@@ -1,8 +1,9 @@
 import { Explain, Popover, Segmented, Slider, ToolButton, Toggle } from '@/components/ui/primitives'
 import { remixPage } from '@/lib/remix'
-import { PRESETS } from '@/presets'
 import { PANEL_LIMITS, useLab } from '@/store/useLab'
 import { TONES, type Tone } from '@/types'
+import { TemplateLibrary } from './TemplateLibrary'
+import { Desktop, DeviceMobile } from '@phosphor-icons/react'
 import {
   Code2,
   Eye,
@@ -17,6 +18,7 @@ import {
   Undo2,
   Waves,
 } from 'lucide-react'
+import { useState } from 'react'
 
 const TONE_OPTIONS = TONES.map((tone) => ({
   value: tone,
@@ -40,11 +42,9 @@ function Label({ children }: { children: string }) {
 
 /** The emotional-engineering toolbar: everything that changes how a page feels. */
 export function TopBar({ onExport }: { onExport: () => void }) {
+  const [libraryOpen, setLibraryOpen] = useState(false)
   const page = useLab((s) => s.page)
-  const presetId = useLab((s) => s.presetId)
   const view = useLab((s) => s.view)
-  const loadPreset = useLab((s) => s.loadPreset)
-  const renamePage = useLab((s) => s.renamePage)
   const setView = useLab((s) => s.setView)
   const setTone = useLab((s) => s.setTone)
   const setChoreo = useLab((s) => s.setChoreo)
@@ -56,6 +56,7 @@ export function TopBar({ onExport }: { onExport: () => void }) {
   const canRedo = useLab((s) => s.future.length > 0)
 
   return (
+    <>
     <header className="z-[100] flex h-13 shrink-0 items-center gap-2 border-b border-ui-800 bg-ui-900 px-3">
       <div className="flex items-center gap-2 pr-1">
         <span className="grid h-6 w-6 place-items-center rounded-md bg-brand text-[11px] font-bold text-white">
@@ -67,41 +68,40 @@ export function TopBar({ onExport }: { onExport: () => void }) {
       <span className="h-5 w-px bg-ui-800" />
 
       {/* Preset + page name ------------------------------------------------ */}
-      <Popover
-        width={272}
-        trigger={({ open, toggle }) => (
-          <ToolButton active={open} onClick={toggle} icon={<LayoutTemplate size={14} />}>
-            <span className="max-w-[168px] truncate">{page.name}</span>
-          </ToolButton>
-        )}
+      <ToolButton
+        active={libraryOpen}
+        onClick={() => setLibraryOpen(true)}
+        title="Open the template strategy library"
+        icon={<LayoutTemplate size={14} />}
       >
-        <p className="m-0 mb-2 text-[10px] font-semibold tracking-[0.13em] text-ui-500 uppercase">
-          Load a preset
-        </p>
-        <div className="flex flex-col gap-1">
-          {PRESETS.map((preset) => (
-            <button
-              key={preset.id}
-              type="button"
-              onClick={() => loadPreset(preset.id)}
-              className={`cursor-pointer rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-ui-800 ${
-                preset.id === presetId ? 'bg-brand/12 shadow-[inset_0_0_0_1px_rgba(124,108,255,.32)]' : ''
-              }`}
-            >
-              <span className="block text-[12px] font-medium text-ui-100">{preset.name}</span>
-              <span className="block text-[10px] text-ui-500">{preset.vertical}</span>
-            </button>
-          ))}
-        </div>
-        <p className="mt-3 mb-1.5 text-[10px] font-semibold tracking-[0.13em] text-ui-500 uppercase">
-          Page name
-        </p>
-        <input
-          value={page.name}
-          onChange={(event) => renamePage(event.target.value)}
-          className="w-full rounded-lg border border-ui-700 bg-ui-850 px-2.5 py-1.5 text-[12px] text-ui-100 outline-none focus:border-brand"
+        <span className="max-w-[168px] truncate">{page.name}</span>
+      </ToolButton>
+
+      <span className="h-5 w-px bg-ui-800" />
+
+      {/* Responsive editing viewport -------------------------------------- */}
+      <div
+        className="flex items-center gap-0.5 rounded-lg border border-ui-800 bg-ui-950 p-0.5"
+        role="group"
+        aria-label="Editing viewport"
+      >
+        <ToolButton
+          size="sm"
+          active={view.viewport === 'desktop'}
+          onClick={() => setView({ viewport: 'desktop' })}
+          aria-label="Edit desktop layout"
+          title="Edit the desktop layout"
+          icon={<Desktop size={14} weight="bold" />}
         />
-      </Popover>
+        <ToolButton
+          size="sm"
+          active={view.viewport === 'phone'}
+          onClick={() => setView({ viewport: 'phone' })}
+          aria-label="Edit phone layout"
+          title="Edit the 390px phone layout"
+          icon={<DeviceMobile size={14} weight="bold" />}
+        />
+      </div>
 
       <span className="h-5 w-px bg-ui-800" />
 
@@ -256,6 +256,8 @@ export function TopBar({ onExport }: { onExport: () => void }) {
         </ToolButton>
       </div>
     </header>
+    <TemplateLibrary open={libraryOpen} onClose={() => setLibraryOpen(false)} />
+    </>
   )
 }
 

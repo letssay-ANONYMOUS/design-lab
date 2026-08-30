@@ -35,6 +35,7 @@ export function SectionShell({ section, index }: { section: Section; index: numb
   const setSectionMeta = useLab((s) => s.setSectionMeta)
   const setActiveSection = useLab((s) => s.setActiveSection)
   const active = useLab((s) => s.activeSectionId === section.id)
+  const phone = useLab((s) => s.view.viewport === 'phone')
 
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
     useSortable({ id: section.id })
@@ -102,14 +103,19 @@ export function SectionShell({ section, index }: { section: Section; index: numb
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-              className="absolute top-3 right-3 z-30 flex items-center gap-1 rounded-xl border border-ui-700 bg-ui-900/92 p-1 shadow-xl backdrop-blur"
+              className={cn(
+                'absolute top-3 right-3 z-30 flex items-center gap-1 rounded-xl border border-ui-700 bg-ui-900/92 p-1 shadow-xl backdrop-blur',
+                phone && 'max-w-[calc(100%-58px)] overflow-x-auto',
+              )}
               onClick={(event) => event.stopPropagation()}
             >
-              <span className="px-1.5 text-[10px] font-semibold tracking-wide text-ui-500 uppercase">
-                {index + 1} · {def.label}
-              </span>
+              {!phone && (
+                <span className="px-1.5 text-[10px] font-semibold tracking-wide text-ui-500 uppercase">
+                  {index + 1} · {def.label}
+                </span>
+              )}
 
-              <span className="mx-0.5 h-4 w-px bg-ui-750" />
+              {!phone && <span className="mx-0.5 h-4 w-px bg-ui-750" />}
 
               <ToolButton
                 size="sm"
@@ -117,7 +123,7 @@ export function SectionShell({ section, index }: { section: Section; index: numb
                 aria-label="Previous layout"
                 icon={<ChevronLeft size={13} />}
               />
-              <span className="min-w-[62px] text-center text-[11px] font-medium text-ui-200">
+              <span className="min-w-[52px] text-center text-[10px] font-medium text-ui-200">
                 {variantLabel(section.type, section.variant)}
               </span>
               <ToolButton

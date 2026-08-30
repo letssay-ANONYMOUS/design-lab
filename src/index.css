@@ -49,7 +49,7 @@ body {
   background: var(--color-ui-950);
   color: var(--color-ui-200);
   font-family:
-    'Inter',
+    'DM Sans',
     system-ui,
     -apple-system,
     sans-serif;
@@ -74,8 +74,8 @@ body {
   --dl-pad-y: 96px;
   --dl-pad-x: 48px;
 
-  --dl-font-heading: 'Inter', system-ui, sans-serif;
-  --dl-font-body: 'Inter', system-ui, sans-serif;
+  --dl-font-heading: 'DM Sans', system-ui, sans-serif;
+  --dl-font-body: 'DM Sans', system-ui, sans-serif;
   --dl-size-base: 16px;
   --dl-size-sm: 14px;
   --dl-size-lg: 20px;
@@ -231,6 +231,49 @@ body {
 .dl-editing .dl-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.14), 0 14px 30px -14px rgba(0, 0, 0, 0.5);
+}
+
+/* Phone editing is a real responsive reflow at 390 CSS pixels. The section
+   renderers intentionally use inline grid maths so designers can drag those
+   values on desktop; these scoped overrides collapse that same structure for
+   the phone viewport without mutating the page model or exported desktop art. */
+.dl-phone [style*='--dl-pad-x'] {
+  --dl-pad-x: 22px !important;
+  --dl-pad-y: 64px !important;
+  --dl-gap: 20px !important;
+  --dl-gap-sm: 10px !important;
+  --dl-gap-lg: 28px !important;
+  --dl-size-h1: 46px !important;
+  --dl-size-h2: 34px !important;
+  --dl-size-h3: 24px !important;
+  --dl-size-lg: 18px !important;
+}
+
+.dl-phone [data-dl-section] .grid {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.dl-phone [data-dl-section] [style*='grid-column'] {
+  grid-column: 1 / -1 !important;
+  grid-row: auto !important;
+}
+
+.dl-phone [data-dl-section] [style*='position: sticky'] {
+  position: static !important;
+  top: auto !important;
+}
+
+.dl-phone [aria-label^='Column split'],
+.dl-phone [aria-label^='Resize card'] {
+  display: none !important;
+}
+
+.dl-phone [data-dl-section] nav.grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.dl-phone .dl-btn {
+  min-height: 46px;
 }
 
 /* The 8pt baseline + 12-col overlay used by the grid toggle. */

@@ -159,6 +159,15 @@ function emitButton(c: Component, ctx: Ctx): string {
 }
 
 function emitImage(c: Component, ratio?: string): string {
+  if (c.props.assetSrc) {
+    const aspect = ratio ?? c.props.ratio ?? '4/3'
+    return `<img
+  src=${JSON.stringify(c.props.assetSrc)}
+  alt=""
+  className="w-full rounded-[var(--dl-radius-lg)] object-cover"
+  style={{ aspectRatio: ${JSON.stringify(aspect)} }}
+/>`
+  }
   const fills = [
     'linear-gradient(135deg, color-mix(in oklab, var(--dl-primary) 82%, black), color-mix(in oklab, var(--dl-accent) 55%, var(--dl-surface)))',
     'linear-gradient(200deg, color-mix(in oklab, var(--dl-accent) 70%, var(--dl-surface)), color-mix(in oklab, var(--dl-primary) 60%, black))',
@@ -483,10 +492,34 @@ ${join(g.faqs.map((c) => emitFaq(c, ctx)), 3)}
 </section>`
 
     case 'bento':
+      if (section.variant === 'storyRail') {
+        return `<section className="${SECTION} bg-[var(--dl-bg)] text-[var(--dl-text)]">
+  <div className="${CONTAINER} grid gap-[var(--dl-gap-lg)] md:[grid-template-columns:4fr_7fr]">
+    <div className="self-start md:sticky md:top-8">
+${indent(emitHeader(g, ctx, 'left'), 3)}
+      <p className="${SMALL} max-w-[32ch] text-[var(--dl-muted)]">Each chapter holds while the next one enters, turning specifications into a controlled product story rather than a feature dump.</p>
+    </div>
+    <div className="flex flex-col">
+${join(
+  g.cards.map(
+    (c, index) => `<article className="flex min-h-[42vh] flex-col justify-between gap-[var(--dl-gap-lg)] border-t border-[var(--dl-border)] py-[var(--dl-gap-lg)]">
+  <span className="${EYEBROW} text-[var(--dl-primary)]">Chapter ${String(index + 1).padStart(2, '0')}</span>
+  <div className="flex max-w-[680px] flex-col gap-[var(--dl-gap-sm)]">
+    <h3 className="${H2} text-[var(--dl-text)]">${s(copy(c, ctx))}</h3>
+    <p className="${LEAD} text-[var(--dl-muted)]">${s(copy(c, ctx, 'sub'))}</p>
+  </div>
+</article>`,
+  ),
+  3,
+)}
+    </div>
+  </div>
+</section>`
+      }
       return `<section className="${SECTION} ${bg}">
   <div className="${CONTAINER}">
 ${indent(emitHeader(g, ctx, 'left'), 2)}
-    <div className="grid auto-rows-[minmax(148px,auto)] grid-cols-12 gap-[var(--dl-gap-sm)]">
+    <div className="grid auto-rows-[minmax(148px,auto)] grid-cols-1 gap-[var(--dl-gap-sm)] md:grid-cols-12">
 ${join(
   g.cards.map((c) => {
     const span = c.props.span ?? { col: 4, row: 1 }
@@ -500,7 +533,7 @@ ${join(
   <div className="shrink-0" style={{ flexBasis: '${share}%', background: ${JSON.stringify(CARD_FILLS[(c.props.placeholder ?? 0) % CARD_FILLS.length]!)} }} />
 `
         : ''
-    return `<div className="flex flex-col overflow-hidden rounded-[var(--dl-radius)] border ${skin}" style={{ gridColumn: 'span ${span.col}', gridRow: 'span ${span.row}' }}>
+    return `<div className="flex flex-col overflow-hidden rounded-[var(--dl-radius)] border ${skin} md:col-span-${span.col} md:row-span-${span.row}">
 ${media}  <div className="flex flex-col gap-1.5 p-[var(--dl-gap)]">
     <h3 className="${H3} ${textColor(ctx)}">${s(copy(c, ctx))}</h3>
     <p className="${BODY} ${mutedColor(ctx)}">${s(copy(c, ctx, 'sub'))}</p>

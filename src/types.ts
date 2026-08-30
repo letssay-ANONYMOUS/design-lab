@@ -5,6 +5,7 @@
 
 export type Tone = 'authority' | 'warm' | 'urgent'
 export const TONES: Tone[] = ['authority', 'warm', 'urgent']
+export type ViewportMode = 'desktop' | 'phone'
 
 /** Copy that ships in all three voices. Rendered via `resolveTone`. */
 export interface ToneText {
@@ -46,6 +47,8 @@ export interface ComponentProps {
   emphasis?: 'primary' | 'secondary' | 'ghost'
   /** IndexedDB key for an uploaded image (see lib/images.ts). */
   imageId?: string
+  /** Project asset bundled with a preset. An upload takes precedence. */
+  assetSrc?: string
   /** Fallback gradient index used until an image is uploaded. */
   placeholder?: number
   /** Aspect ratio for image slots, e.g. "4/5". */
@@ -190,6 +193,8 @@ export interface Selection {
 }
 
 export interface LabView {
+  /** Editing viewport. Phone is a real 390px reflow, not a scaled desktop. */
+  viewport: ViewportMode
   squint: boolean
   grid: boolean
   minimap: boolean

@@ -155,6 +155,14 @@ await flush(() => lab().setView({ squint: true, grid: true, trustDensity: 0 }))
 await flush(() => lab().setView({ squint: false, grid: false, trustDensity: 100 }))
 check('view toggles survive a round trip', lab().view.trustDensity === 100)
 
+await flush(() => lab().setView({ viewport: 'phone' }))
+check(
+  'phone editing viewport renders a real responsive canvas',
+  lab().view.viewport === 'phone' && html().includes('Phone canvas') && html().includes('dl-phone'),
+)
+await flush(() => lab().setView({ viewport: 'desktop' }))
+check('desktop viewport restores', lab().view.viewport === 'desktop' && !html().includes('Phone canvas'))
+
 /* Component-level editing (feature 4) and bento spans (feature 6). */
 await flush(() => lab().loadPreset('clinic'))
 const hero = lab().page.sections[0]!

@@ -23,6 +23,7 @@ import { persist } from 'zustand/middleware'
 const HISTORY_LIMIT = 60
 
 const DEFAULT_VIEW: LabView = {
+  viewport: 'desktop',
   squint: false,
   grid: false,
   minimap: true,
