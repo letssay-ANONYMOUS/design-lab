@@ -16,6 +16,15 @@ npm run dev
 
 Then open the URL Vite prints (usually <http://localhost:5173>).
 
+For the fixed local URL used by the persistent Mac service, run:
+
+```bash
+npm run start:local
+```
+
+Design Lab will be available at <http://localhost:5173>. The server is pinned to
+port 5173 and exits instead of silently moving to another port.
+
 | Script | What it does |
 | --- | --- |
 | `npm run dev` | The app |

@@ -116,6 +116,38 @@ function move<T>(list: T[], from: number, to: number): T[] {
   return next
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+function isPersistedPage(value: unknown): value is Page {
+  if (!isRecord(value) || typeof value.id !== 'string' || typeof value.name !== 'string') {
+    return false
+  }
+  if (!isRecord(value.tokens) || !Array.isArray(value.sections) || value.sections.length === 0) {
+    return false
+  }
+  return value.sections.every(
+    (section) =>
+      isRecord(section) &&
+      typeof section.id === 'string' &&
+      typeof section.type === 'string' &&
+      typeof section.variant === 'string' &&
+      Array.isArray(section.components),
+  )
+}
+
+function isPersistedSnapshot(value: unknown): value is Snapshot {
+  return (
+    isRecord(value) &&
+    typeof value.id === 'string' &&
+    typeof value.name === 'string' &&
+    typeof value.createdAt === 'number' &&
+    typeof value.thumb === 'string' &&
+    isPersistedPage(value.page)
+  )
+}
+
 export const useLab = create<LabState>()(
   persist(
     (set, get) => {
@@ -375,15 +407,34 @@ export const useLab = create<LabState>()(
       merge: (persisted, current) => {
         const saved = persisted as Partial<LabState> | undefined
         if (!saved) return current
+        const savedView: Record<string, unknown> = isRecord(saved.view) ? saved.view : {}
+        const savedChoreo: Record<string, unknown> = isRecord(savedView.choreo)
+          ? savedView.choreo
+          : {}
+        const page = isPersistedPage(saved.page)
+          ? { ...saved.page, tokens: { ...DEFAULT_TOKENS, ...saved.page.tokens } }
+          : current.page
+        const snapshots = Array.isArray(saved.snapshots)
+          ? saved.snapshots.filter(isPersistedSnapshot)
+          : current.snapshots
+        const presetId =
+          typeof saved.presetId === 'string' && PRESETS.some((preset) => preset.id === saved.presetId)
+            ? saved.presetId
+            : current.presetId
         return {
           ...current,
-          ...saved,
           // View gained fields across versions; fill the gaps rather than
           // shipping `undefined` into a slider.
-          view: { ...DEFAULT_VIEW, ...saved.view, previewNonce: 0, compare: null },
-          page: saved.page
-            ? { ...saved.page, tokens: { ...DEFAULT_TOKENS, ...saved.page.tokens } }
-            : current.page,
+          view: {
+            ...DEFAULT_VIEW,
+            ...savedView,
+            choreo: { ...DEFAULT_VIEW.choreo, ...savedChoreo },
+            previewNonce: 0,
+            compare: null,
+          },
+          page,
+          presetId,
+          snapshots,
           past: [],
           future: [],
           selection: null,

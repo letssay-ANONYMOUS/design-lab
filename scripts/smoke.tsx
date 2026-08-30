@@ -250,6 +250,34 @@ if (persisted) {
   check('persisted snapshots survive', parsed.state.snapshots.length === 2)
 }
 
+/* A stale or malformed browser save must not turn the whole app white. */
+const healthyPage = lab().page
+const healthyPresetId = lab().presetId
+dom.window.localStorage.setItem(
+  'design-lab:v1',
+  JSON.stringify({
+    state: {
+      page: { id: 'broken' },
+      presetId: 'missing-preset',
+      snapshots: [{ id: 'broken-snapshot' }],
+      view: { choreo: { distance: 11 } },
+    },
+    version: 1,
+  }),
+)
+await act(async () => {
+  await useLab.persist.rehydrate()
+})
+check('malformed saved page falls back safely', lab().page === healthyPage)
+check('unknown saved preset falls back safely', lab().presetId === healthyPresetId)
+check('malformed snapshots are discarded', lab().snapshots.length === 0)
+check(
+  'partial choreography fills safe defaults',
+  lab().view.choreo.distance === 11 &&
+    lab().view.choreo.stagger === 0.07 &&
+    lab().view.choreo.parallax === 30,
+)
+
 await act(async () => {
   root.unmount()
 })

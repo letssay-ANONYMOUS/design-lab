@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "start:local": "vite --host 127.0.0.1 --port 5173 --strictPort",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview",
+    "preview": "vite preview --host 127.0.0.1 --port 5173 --strictPort",
     "typecheck": "tsc -b",
     "smoke": "vite build --ssr scripts/smoke.tsx --outDir .tmp-smoke --logLevel error && node .tmp-smoke/smoke.js",
     "check:export": "vite build --ssr scripts/check-export.ts --outDir .tmp-export-check --logLevel error && node .tmp-export-check/check-export.js && tsc --ignoreConfig --noEmit --jsx react-jsx --strict --target es2023 --module esnext --moduleResolution bundler --lib ES2023,DOM --skipLibCheck .export-check/*.tsx && echo \"all exported JSX typechecks clean\""
