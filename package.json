@@ -1,6 +1,8 @@
 {
   "name": "design-lab",
   "private": true,
+  "author": "Hasan Adnan",
+  "license": "MIT",
   "version": "0.0.0",
   "type": "module",
   "scripts": {
