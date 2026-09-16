@@ -9,12 +9,83 @@ put two directions side by side.
 
 It runs entirely in the browser. Nothing is uploaded anywhere.
 
+**Status:** active · runs locally, no server, no account · React 19 + TypeScript + Vite
+
 ```bash
+git clone https://github.com/letssay-ANONYMOUS/design-lab.git
+cd design-lab
 npm install
 npm run dev
 ```
 
-Then open the URL Vite prints (usually <http://localhost:5173>).
+Then open the URL Vite prints (usually <http://localhost:5173>). There is no backend
+and no environment file — the whole app is the client.
+
+![The editor: canvas in the middle, pacing rail on the left, design tokens on the right](docs/screenshots/editor.png)
+
+| Squint test | Export |
+| --- | --- |
+| ![The page blurred so only hierarchy survives](docs/screenshots/squint.png) | ![Generated self-contained React and Tailwind](docs/screenshots/export.png) |
+
+Left: the squint test blurs the page so you judge hierarchy rather than read the copy — if the
+wrong thing survives the blur, the wrong thing is loudest. Right: every page exports as
+self-contained typed React with the tokens as CSS variables on the root, so restyling the whole
+page is editing one object.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph state["State · Zustand store"]
+        PAGE["page: ordered sections<br/>each with variant, meta, tokens"]
+        HIST["undo / redo stack"]
+    end
+
+    REG["lib/registry.ts<br/>every section variant, once"]
+
+    subgraph render["Render"]
+        CANVAS["Canvas<br/>dnd-kit reorder · framer-motion FLIP"]
+        CHROME["Panels<br/>tokens, pacing, snapshots, compare"]
+    end
+
+    EXPORT["lib/export.ts<br/>→ typed React + Tailwind"]
+    IDB[("IndexedDB<br/>uploaded image blobs")]
+    LS[("localStorage<br/>page + snapshots")]
+
+    PAGE --> CANVAS
+    PAGE --> CHROME
+    REG -->|"variants, cycling, remix"| CANVAS
+    REG -->|"same table"| EXPORT
+    PAGE --> EXPORT
+    CANVAS -->|"edits"| PAGE
+    PAGE <--> LS
+    CANVAS <--> IDB
+```
+
+The load-bearing decision is `lib/registry.ts`. Section variants are declared once in a table,
+and cycling, remix and the exporter all read that same table — so a new variant becomes
+cyclable, remixable and exportable without being registered in three places. Only the blob key
+goes into the page JSON; the image bytes stay in IndexedDB, which keeps the saved page small
+enough for localStorage.
+
+## Verification
+
+There is no server to integration-test against, so the harness mounts the real app in jsdom and
+drives it:
+
+```bash
+npm run typecheck     # tsc -b
+npm run lint          # oxlint
+npm run build         # production build
+npm run smoke         # 64 checks; fails on any console error or warning
+npm run check:export  # generates JSX for every preset, typechecks it standalone
+```
+
+`smoke` is the one that matters. It exercises every feature — adding and moving components
+across sections, undo, bento spans, snapshots, restore, compare, persistence — and treats a
+React warning as a failure, which is how the three that were there got found. `check:export`
+catches the failure mode a type system cannot see on its own: the exporter emitting JSX that
+does not compile.
 
 For the fixed local URL used by the persistent Mac service, run:
 

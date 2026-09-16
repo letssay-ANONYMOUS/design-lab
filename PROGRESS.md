@@ -120,12 +120,12 @@ it was written. `npm run check:export` typechecks generated JSX as real source.
 
 ## State at the end of the run
 
-`typecheck`, `lint`, `build`, `smoke` (40 checks) and `check:export` all pass,
+`typecheck`, `lint`, `build`, `smoke` (64 checks) and `check:export` all pass,
 with zero lint warnings and a clean console.
 
 ## Known issues
 
-- **Production bundle is ~1.17 MB** (326 KB gzipped). Cause is identified:
+- **Production bundle is ~1.30 MB** (366 KB gzipped). Cause is identified:
   `lucide-react@1` re-exports `import * as index from './icons/index.mjs'` as a
   namespace, and the bundler will not shake a namespace object, so all ~1,600
   icons ship. It does not affect `npm run dev`, which is how this tool is used.
